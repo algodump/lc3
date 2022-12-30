@@ -1,16 +1,15 @@
 #include <iostream>
 
 #include "reader.hpp"
+#include "assembler.hpp"
 
 int main() {
     Reader reader("..\\in.lc3");
 
-    for (auto& inst : reader.readFile()) {
-        std::cout << "DEBUG: " << inst.label << " " << static_cast<int>(inst.type) << " ";
-        for (auto op : inst.operands) {
-            std::cout << op << " ";
-        }
-        std::cout << std::endl;
-    }
+    auto instructions = reader.readFile();
+
+    Assembler assembler(instructions);
+    Writer writer("..\\out.l3_bin");
+    assembler.gnenerate(writer);
     return 0;
 }

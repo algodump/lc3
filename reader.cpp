@@ -4,18 +4,16 @@
 #include <iostream>
 #include <sstream>
 
-Reader::Reader(const std::string &filename) : m_programName(filename),
-                                              m_supportedInstructions{{"ADD", InsturctionType::ADD}} {}
+Reader::Reader(const std::string &filename) : m_programName(filename) {}
 
-
-bool Reader::isLabel(const std::string& labelOrInstructions) const
+bool Reader::isLabel(const std::string& labelOrInstructionTokens) const
 {
-    return m_supportedInstructions.find(labelOrInstructions) == m_supportedInstructions.end();
+    return labelOrInstructionTokens.find(":") != std::string::npos;
 }
 
-Instruction Reader::retriveInsturction(const std::string& partsOfInstruction)
+InstructionToken Reader::retriveInsturction(const std::string& partsOfInstructionToken)
 {
-    std::istringstream iss(partsOfInstruction);
+    std::istringstream iss(partsOfInstructionToken);
     std::string label;
     std::string instructionName;
 
@@ -29,24 +27,27 @@ Instruction Reader::retriveInsturction(const std::string& partsOfInstruction)
 
     std::vector<std::string> operands;
     for (std::string part; std::getline(iss >> std::ws, part, ',');) {
-        if (auto commentBeing = part.find(';'); commentBeing != std::string::npos) {
+        if (auto commentBeing = part.find_first_of(" ;"); commentBeing != std::string::npos) {
             operands.push_back(part.substr(0, commentBeing));
             break;
         }
         operands.push_back(part);
     }
-    return Instruction{.label = label, .type = m_supportedInstructions[instructionName], .operands = operands};
+    return InstructionToken{.label = label, .name = instructionName, .operands = operands};
 }
 
-std::vector<Instruction> Reader::readFile() 
+std::vector<std::shared_ptr<Instruction>> Reader::readFile() 
 {
-    std::vector<Instruction> tokens;
+    std::vector<std::shared_ptr<Instruction>> tokens;
     std::ifstream ifs(m_programName);
 
     for (std::string currentLine; std::getline(ifs >> std::ws, currentLine);) {
         // skip comments
         if (!currentLine.empty() && currentLine[0] != ';') {
-            tokens.push_back(retriveInsturction(currentLine));
+            auto&& [label, name, operands] = retriveInsturction(currentLine);
+            if (name == "ADD") {
+                tokens.push_back(std::make_shared<AddInstruction>(operands));
+            }
         }
     }
 

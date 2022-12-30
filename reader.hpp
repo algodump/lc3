@@ -1,31 +1,30 @@
 #pragma once
 
+#include "instructions.hpp"
+
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 
-enum class InsturctionType : uint8_t {
-    ADD
-};
 
-// FIXME: remove label from every instruction
-struct Instruction
+// FIXME: remove label from every InstructionToken
+struct InstructionToken
 {
     std::string label;
-    InsturctionType type;
+    std::string name;
     std::vector<std::string> operands;
 };
 
 class Reader {
 public:
     Reader(const std::string& filename);
-    std::vector<Instruction> readFile();
+    std::vector<std::shared_ptr<Instruction>> readFile();
 
 private:
-    bool isLabel(const std::string& labelOrInstruction) const;
-    Instruction retriveInsturction(const std::string& partsOfInstruction);
+    bool isLabel(const std::string& labelOrInstructionToken) const;
+    InstructionToken retriveInsturction(const std::string& partsOfInstructionToken);
 
 private:
     std::string m_programName;
-    std::map<std::string, InsturctionType> m_supportedInstructions;
 };
