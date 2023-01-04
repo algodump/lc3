@@ -1,6 +1,7 @@
 #include "instructions.hpp"
 #include "assembler.hpp"
 
+#include <assert.h>
 #include <string>
 
 namespace {
@@ -76,4 +77,50 @@ uint16_t LoadInstruction::generate()
         .set(getRegister(m_operands[0]))
         .set(labelOffset.to_string());
     return m_assembelyInstruction.instruction();
+}
+
+OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
+
+uint16_t OriginDerective::generate() { return m_origin; }
+
+FillDerective::FillDerective(uint16_t value) : m_value(value) {}
+
+uint16_t FillDerective::generate() { return m_value; }
+
+BlkwDerective::BlkwDerective(uint16_t numberOfMemoryLocations)
+    : m_numberOfMemoryLocations(numberOfMemoryLocations)
+{
+}
+
+uint16_t BlkwDerective::generate()
+{
+    assert(true && "should not call this method");
+    return -1;
+}
+
+uint16_t BlkwDerective::getNumberOfMemoryLocations() const
+{
+    return m_numberOfMemoryLocations;
+}
+
+StringDerective::StringDerective(const std::string& stringToWrite)
+    : m_stringToWrite(stringToWrite)
+{
+}
+
+uint16_t StringDerective::generate()
+{
+    assert(false && "should not call this method");
+    return -1;
+}
+
+std::string StringDerective::getStringToWrite() const
+{
+    return m_stringToWrite;
+}
+
+uint16_t EndDerective::generate()
+{
+    assert(false && "should not call this method");
+    return -1;
 }

@@ -1,4 +1,10 @@
 ; this is comment
-LABEL ADD R0, R1, R2 ; R0 = R1 + R2
+.ORIG 0x3000
+.STRINGZ "HELLO WORLD" ; ""
+.BLKW 1
+.FILL 0xADDE
 
+LABEL ADD R0, R1, R2 ; R0 = R1 + R2
 LD R3, LABEL
+
+.END

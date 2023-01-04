@@ -26,8 +26,33 @@ Assembler::Assembler(std::vector<std::shared_ptr<Instruction>>& instructions)
 
 void Assembler::gnenerate(Writer& writer)
 {
+    assert(dynamic_cast<OriginDerective*>((m_instructions.front()).get()));
+    assert(dynamic_cast<EndDerective*>((m_instructions.back()).get()));
+
     for (auto& instruction : m_instructions) {
-        auto binaryInstruction = instruction->generate();
-        writer.write(binaryInstruction);
+        if (auto blkwDerective =
+                dynamic_cast<BlkwDerective*>(instruction.get());
+            blkwDerective) {
+            for (int i = 0; i < blkwDerective->getNumberOfMemoryLocations();
+                 ++i) {
+                std::bitset<16> no("0100111101001110");
+                writer.write(no.to_ulong());
+            }
+        }
+        else if (auto stringzDerective =
+                     dynamic_cast<StringDerective*>(instruction.get());
+                 stringzDerective) {
+            for (auto ch : stringzDerective->getStringToWrite()) {
+                std::bitset<16> sixteenBitChar(ch);
+                writer.write(sixteenBitChar.to_ulong());
+            }
+            writer.write(0);
+        } else if (dynamic_cast<EndDerective*>(instruction.get())) {
+            continue;
+        }
+        else {
+            auto binaryInstruction = instruction->generate();
+            writer.write(binaryInstruction);
+        }
     }
 }

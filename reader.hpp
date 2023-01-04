@@ -22,16 +22,15 @@ class SymbolTable {
         return table;
     }
 
-    void add(const std::string& label, uint16_t offset) 
+    void add(const std::string& label, uint16_t offset)
     {
         m_labelsOffset.insert({label, offset});
     }
 
     uint16_t get(const std::string& label) const
     {
-      return m_labelsOffset.at(label);
+        return m_labelsOffset.at(label);
     }
-
 
     SymbolTable(const SymbolTable&) = delete;
     SymbolTable& operator=(SymbolTable&) = delete;

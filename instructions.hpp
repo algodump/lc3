@@ -1,68 +1,55 @@
 #pragma once
 
-#include <iostream>
-#include <vector>
 #include <bitset>
+#include <iostream>
 #include <set>
+#include <vector>
+
 
 class SupportedInsturctions {
   public:
-    static bool isInstruction(const std::string& maybeInsturction) {
+    static bool isInstruction(const std::string& maybeInsturction)
+    {
         static std::set<std::string> supportedInstruction = {
-            "ADD",
-            "AND",
-            "BR",
-            "JMP",
-            "JSR",
-            "JSRR",
-            "LD",
-            "LDI",
-            "LDR",
-            "LEA",
-            "NOT",
-            "RET",
-            "RTI",
-            "ST",
-            "STI",
-            "STR",
-            "TRAP"
-        };
-        return supportedInstruction.find(maybeInsturction) != supportedInstruction.end();
+            "ADD", "AND", "BR",   "JMP",   "JSR",   "JSRR",  "LD",
+            "LDI", "LDR", "LEA",  "NOT",   "RET",   "RTI",   "ST",
+            "STI", "STR", "TRAP", ".ORIG", ".FILL", ".BLKW", ".STRINGZ", ".END"};
+        return supportedInstruction.find(maybeInsturction) !=
+               supportedInstruction.end();
     }
 };
 
 class InstructionBuilder {
-public:
+  public:
     InstructionBuilder();
     // TODO: make bits as uint
-    InstructionBuilder &set(const std::string &bits);
+    InstructionBuilder& set(const std::string& bits);
 
     uint16_t instruction() const;
-private:
+
+  private:
     uint8_t m_bitPointer;
     std::bitset<16> m_instruction;
 };
 
-class Instruction
-{
-public:
+class Instruction {
+  public:
     virtual uint16_t generate() = 0;
     virtual ~Instruction();
 
-protected:
+  protected:
     InstructionBuilder m_assembelyInstruction;
 };
 
-class AddInstruction : public Instruction
-{
-public:
+class AddInstruction : public Instruction {
+  public:
     AddInstruction(const std::vector<std::string>& operands);
     uint16_t generate() override;
 
-private:
+  private:
     bool isImmediate();
 
-private:
+  private:
     std::vector<std::string> m_operands;
 };
 
@@ -73,4 +60,50 @@ class LoadInstruction : public Instruction {
 
   private:
     std::vector<std::string> m_operands;
+};
+
+class OriginDerective : public Instruction {
+  public:
+    OriginDerective(uint16_t origin);
+    uint16_t generate() override;
+
+  private:
+    uint16_t m_origin;
+};
+
+class FillDerective : public Instruction {
+  public:
+    FillDerective(uint16_t value);
+    uint16_t generate() override;
+
+  private:
+    uint16_t m_value;
+};
+
+class BlkwDerective : public Instruction {
+  public:
+    BlkwDerective(uint16_t numberOfMemoryLocations);
+    uint16_t generate() override;
+
+    uint16_t getNumberOfMemoryLocations() const;
+
+  private:
+    uint16_t m_numberOfMemoryLocations;
+};
+
+class StringDerective : public Instruction {
+  public:
+    StringDerective(const std::string& str);
+    uint16_t generate() override;
+
+    std::string getStringToWrite() const;
+
+  private:
+    std::string m_stringToWrite;
+};
+
+class EndDerective : public Instruction {
+  public:
+    EndDerective() = default;
+    uint16_t generate() override;
 };
