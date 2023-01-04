@@ -1,3 +1,4 @@
 ; this is comment
-LABEL: ADD R0, R1, R2 ; R0 = R1 + R2
-ADD R0, R1, 42 ; R0 = R1 + 42
+LABEL ADD R0, R1, R2 ; R0 = R1 + R2
+
+LD R3, LABEL

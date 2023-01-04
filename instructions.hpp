@@ -3,6 +3,33 @@
 #include <iostream>
 #include <vector>
 #include <bitset>
+#include <set>
+
+class SupportedInsturctions {
+  public:
+    static bool isInstruction(const std::string& maybeInsturction) {
+        static std::set<std::string> supportedInstruction = {
+            "ADD",
+            "AND",
+            "BR",
+            "JMP",
+            "JSR",
+            "JSRR",
+            "LD",
+            "LDI",
+            "LDR",
+            "LEA",
+            "NOT",
+            "RET",
+            "RTI",
+            "ST",
+            "STI",
+            "STR",
+            "TRAP"
+        };
+        return supportedInstruction.find(maybeInsturction) != supportedInstruction.end();
+    }
+};
 
 class InstructionBuilder {
 public:
@@ -36,5 +63,14 @@ private:
     bool isImmediate();
 
 private:
+    std::vector<std::string> m_operands;
+};
+
+class LoadInstruction : public Instruction {
+  public:
+    LoadInstruction(const std::vector<std::string>& operands);
+    uint16_t generate() override;
+
+  private:
     std::vector<std::string> m_operands;
 };
