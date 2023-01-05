@@ -4,7 +4,7 @@
 #include "reader.hpp"
 
 int main() {
-    Reader reader("..\\..\\in.lc3");
+    Reader reader("..\\..\\tests\\playground.lc3");
     auto instructions = reader.readFile();
 
     Assembler assembler(instructions);
