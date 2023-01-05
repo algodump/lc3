@@ -50,11 +50,8 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
     std::vector<std::shared_ptr<Instruction>> tokens;
     std::ifstream ifs(m_programName);
 
-    std::string currentLine;
-    std::getline(ifs >> std::ws, currentLine);
     uint16_t offsetFromOrigin = 0;
-
-    for (; std::getline(ifs >> std::ws, currentLine);) {
+    for (std::string currentLine; std::getline(ifs >> std::ws, currentLine);) {
         // skip comments
         if (!currentLine.empty() && currentLine[0] != ';') {
             auto&& [label, name, operands] = parseInsturction(currentLine);

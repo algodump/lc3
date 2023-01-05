@@ -73,7 +73,7 @@ LoadInstruction::LoadInstruction(const std::vector<std::string>& operands)
 uint16_t LoadInstruction::generate()
 {
     std::bitset<9> labelOffset(SymbolTable::the().get(m_operands[1]));
-    m_assembelyInstruction.set("0001")
+    m_assembelyInstruction.set("0010")
         .set(getRegister(m_operands[0]))
         .set(labelOffset.to_string());
     return m_assembelyInstruction.instruction();
