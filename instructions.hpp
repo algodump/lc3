@@ -47,9 +47,6 @@ class AddInstruction : public Instruction {
     uint16_t generate() override;
 
   private:
-    bool isImmediate();
-
-  private:
     std::vector<std::string> m_operands;
 };
 
@@ -61,6 +58,16 @@ class LoadInstruction : public Instruction {
   private:
     std::vector<std::string> m_operands;
 };
+
+class AndInstruction : public Instruction {
+  public:
+    AndInstruction(const std::vector<std::string>& operands);
+    uint16_t generate() override;
+
+  private:
+    std::vector<std::string> m_operands;
+};
+
 
 class OriginDerective : public Instruction {
   public:

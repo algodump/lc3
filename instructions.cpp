@@ -39,6 +39,8 @@ uint16_t InstructionBuilder::instruction() const
 
 Instruction::~Instruction() {}
 
+bool isImmediate(const std::string& thirdOperand) { return thirdOperand.front() != 'R'; }
+
 AddInstruction::AddInstruction(const std::vector<std::string>& operands)
     : m_operands(operands)
 {
@@ -46,7 +48,7 @@ AddInstruction::AddInstruction(const std::vector<std::string>& operands)
 
 uint16_t AddInstruction::generate()
 {
-    if (isImmediate()) {
+    if (isImmediate(m_operands[2])) {
         m_assembelyInstruction.set("0001")
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
@@ -63,8 +65,6 @@ uint16_t AddInstruction::generate()
     return m_assembelyInstruction.instruction();
 }
 
-bool AddInstruction::isImmediate() { return m_operands[2].front() != 'R'; }
-
 LoadInstruction::LoadInstruction(const std::vector<std::string>& operands)
     : m_operands(operands)
 {
@@ -76,6 +76,30 @@ uint16_t LoadInstruction::generate()
     m_assembelyInstruction.set("0010")
         .set(getRegister(m_operands[0]))
         .set(labelOffset.to_string());
+    return m_assembelyInstruction.instruction();
+}
+
+AndInstruction::AndInstruction(const std::vector<std::string>& operands)
+    : m_operands(operands)
+{
+}
+
+uint16_t AndInstruction::generate()
+{
+    if (isImmediate(m_operands[2])) {
+        m_assembelyInstruction.set("0101")
+            .set(getRegister(m_operands[0]))
+            .set(getRegister(m_operands[1]))
+            .set("1")
+            .set(getImmediate<5>(m_operands[2]));
+    }
+    else {
+        m_assembelyInstruction.set("0101")
+            .set(getRegister(m_operands[0]))
+            .set(getRegister(m_operands[1]))
+            .set("000")
+            .set(getRegister(m_operands[2]));
+    }
     return m_assembelyInstruction.instruction();
 }
 

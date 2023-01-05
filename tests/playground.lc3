@@ -1,4 +1,9 @@
 .ORIG 0x3000
+
 LABEL ADD R0, R1, R2 ; R0 = R1 + R2
 LD R3, LABEL
+
+AND R7, R2, R1
+AND R0, R7, 7
+
 .END

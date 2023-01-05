@@ -84,6 +84,8 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             // parse normal instructions
             else if (name == "ADD") {
                 tokens.push_back(std::make_shared<AddInstruction>(operands));
+            } else if (name == "AND") {
+                tokens.push_back(std::make_shared<AndInstruction>(operands));
             }
             else if (name == "LD") {
                 tokens.push_back(std::make_shared<LoadInstruction>(operands));
