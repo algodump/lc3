@@ -5,15 +5,16 @@
 #include <set>
 #include <vector>
 
-
 class SupportedInsturctions {
   public:
     static bool isInstruction(const std::string& maybeInsturction)
     {
         static std::set<std::string> supportedInstruction = {
-            "ADD", "AND", "BR",   "JMP",   "JSR",   "JSRR",  "LD",
-            "LDI", "LDR", "LEA",  "NOT",   "RET",   "RTI",   "ST",
-            "STI", "STR", "TRAP", ".ORIG", ".FILL", ".BLKW", ".STRINGZ", ".END"};
+            "ADD",   "AND",   "BR",    "BRn",      "BRzp", "BRz",
+            "BRnp",  "BRp",   "BRnz",  "BRnzp",    "JMP",  "JSR",
+            "JSRR",  "LD",    "LDI",   "LDR",      "LEA",  "NOT",
+            "RET",   "RTI",   "ST",    "STI",      "STR",  "TRAP",
+            ".ORIG", ".FILL", ".BLKW", ".STRINGZ", ".END"};
         return supportedInstruction.find(maybeInsturction) !=
                supportedInstruction.end();
     }
@@ -24,6 +25,7 @@ class InstructionBuilder {
     InstructionBuilder();
     // TODO: make bits as uint
     InstructionBuilder& set(const std::string& bits);
+    InstructionBuilder& set(char bit);
 
     uint16_t instruction() const;
 
@@ -43,6 +45,8 @@ class Instruction {
 
 class AddInstruction : public Instruction {
   public:
+    // FIXME: parse the operands during the reading stage,
+    //        becaues vector<string> is to vague
     AddInstruction(const std::vector<std::string>& operands);
     uint16_t generate() override;
 
@@ -68,6 +72,16 @@ class AndInstruction : public Instruction {
     std::vector<std::string> m_operands;
 };
 
+class BrInstruction : public Instruction {
+  public:
+    BrInstruction(const std::string& conditionalCodes,
+                  const std::string& label);
+    uint16_t generate() override;
+
+  private:
+    std::string m_conditionalCodes;
+    std::string m_label;
+};
 
 class OriginDerective : public Instruction {
   public:

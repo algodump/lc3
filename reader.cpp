@@ -86,6 +86,12 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 tokens.push_back(std::make_shared<AddInstruction>(operands));
             } else if (name == "AND") {
                 tokens.push_back(std::make_shared<AndInstruction>(operands));
+            } else if (name.starts_with("BR")) {
+                // This instruction comes in 8 falvours)
+                // BRn BRzp BRz BRnp BRp BRnz BR BRnzp
+                auto conditionalCodes = name.substr(2);
+                auto label = operands[0];
+                tokens.push_back(std::make_shared<BrInstruction>(conditionalCodes, label));
             }
             else if (name == "LD") {
                 tokens.push_back(std::make_shared<LoadInstruction>(operands));

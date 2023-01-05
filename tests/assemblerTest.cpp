@@ -47,6 +47,51 @@ TEST(Instructions, AndInstruction)
               "0101111001110000");
 }
 
+TEST(Instructions, BrInstruction)
+{
+    auto testBrInstructionWith = [](const std::string& conditionalCodes) {
+        std::string label = "LABEL";
+        SymbolTable::the().add(label, 1);
+
+        std::string opCode = "0000";
+
+        std::string conditionalCodesResult = "";
+        if (conditionalCodes.empty() || conditionalCodes.size() == 3) {
+            conditionalCodesResult += "111";
+        } else {
+            char n =
+                conditionalCodes.find('n') != std::string::npos ? '1' : '0';
+            char z =
+                conditionalCodes.find('z') != std::string::npos ? '1' : '0';
+            char p =
+                conditionalCodes.find('p') != std::string::npos ? '1' : '0';
+            conditionalCodesResult += n;
+            conditionalCodesResult += z;
+            conditionalCodesResult += p;
+        }
+
+        std::string labelOffset =
+            std::bitset<9>(SymbolTable::the().get(label)).to_string();
+
+        std::string expectedResult =
+            opCode + conditionalCodesResult + labelOffset;
+
+        BrInstruction brInstruction(conditionalCodes, label);
+        std::bitset<16> binaryLoadInstruction(brInstruction.generate());
+
+        ASSERT_EQ(binaryLoadInstruction.to_string(), expectedResult);
+    };
+
+    testBrInstructionWith("");
+    testBrInstructionWith("n");
+    testBrInstructionWith("zp");
+    testBrInstructionWith("z");
+    testBrInstructionWith("np");
+    testBrInstructionWith("p");
+    testBrInstructionWith("nz");
+    testBrInstructionWith("nzp");
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);

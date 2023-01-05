@@ -31,6 +31,12 @@ InstructionBuilder& InstructionBuilder::set(const std::string& bits)
     return *this;
 }
 
+InstructionBuilder& InstructionBuilder::set(char bit)
+{
+    m_instruction.set(m_bitPointer--, (bit - '0') == 1);
+    return *this;
+}
+
 uint16_t InstructionBuilder::instruction() const
 {
     std::cout << "GENERATED INSTRUCTION: " << m_instruction << std::endl;
@@ -39,7 +45,10 @@ uint16_t InstructionBuilder::instruction() const
 
 Instruction::~Instruction() {}
 
-bool isImmediate(const std::string& thirdOperand) { return thirdOperand.front() != 'R'; }
+bool isImmediate(const std::string& thirdOperand)
+{
+    return thirdOperand.front() != 'R';
+}
 
 AddInstruction::AddInstruction(const std::vector<std::string>& operands)
     : m_operands(operands)
@@ -52,7 +61,7 @@ uint16_t AddInstruction::generate()
         m_assembelyInstruction.set("0001")
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
-            .set("1")
+            .set('1')
             .set(getImmediate<5>(m_operands[2]));
     }
     else {
@@ -90,7 +99,7 @@ uint16_t AndInstruction::generate()
         m_assembelyInstruction.set("0101")
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
-            .set("1")
+            .set('1')
             .set(getImmediate<5>(m_operands[2]));
     }
     else {
@@ -99,6 +108,37 @@ uint16_t AndInstruction::generate()
             .set(getRegister(m_operands[1]))
             .set("000")
             .set(getRegister(m_operands[2]));
+    }
+    return m_assembelyInstruction.instruction();
+}
+
+BrInstruction::BrInstruction(const std::string& conditionalCodes,
+                             const std::string& label)
+    : m_conditionalCodes(conditionalCodes), m_label(label)
+{
+}
+
+uint16_t BrInstruction::generate()
+{
+    std::bitset<9> labelOffset(SymbolTable::the().get(m_label));
+    std::string opcode = "0000";
+    // NOTE: BRnzp and BR are the same, so if either all codes are set or none,
+    //       reuslt must be the same
+    if (m_conditionalCodes.empty() || m_conditionalCodes.size() == 3) {
+        // clang-format off
+           m_assembelyInstruction.set(opcode)
+            .set('1')
+            .set('1')
+            .set('1')
+            .set(labelOffset.to_string());
+        // clang-format on
+    }
+    else {
+        char n = m_conditionalCodes.find('n') != std::string::npos ? '1' : '0';
+        char z = m_conditionalCodes.find('z') != std::string::npos ? '1' : '0';
+        char p = m_conditionalCodes.find('p') != std::string::npos ? '1' : '0';
+        m_assembelyInstruction.set(opcode).set(n).set(z).set(p).set(
+            labelOffset.to_string());
     }
     return m_assembelyInstruction.instruction();
 }
