@@ -3,6 +3,25 @@
 #include "../reader.hpp"
 #include "../assembler.hpp"
 
+namespace {
+    template<class InstructionType> 
+    void testAllTheRegisterFor(const std::string& label) {
+        std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
+        for (auto lc3Register : lc3registers) {
+            InstructionType instruction(lc3Register, label);
+            std::bitset<16> binaryInstruction(instruction.generate());
+
+            std::string labelOffset =
+                Assembler::toBinaryString(SymbolTable::the().get(label));
+            std::string lc3RegisterBin =
+                Assembler::toBinaryString<3>(lc3Register);
+            std::string expectedResult =
+                instruction.opcode() + lc3RegisterBin + labelOffset;
+            ASSERT_EQ(binaryInstruction.to_string(), expectedResult);
+        }
+    }
+}
+
 TEST(Instructions, AddInstruction)
 {
     std::vector<std::string> operands = {"R0", "R1", "R2"};
@@ -23,20 +42,6 @@ TEST(Instructions, AddInstruction)
         addInstructionsWithImmediat.opcode() + "000" + "001" + "1" + "00111";
     ASSERT_EQ(binaryAddInstructionWithImmediate.to_string(),
               expectedResultWithImmediate);
-}
-
-TEST(Instructions, LoadInstruction)
-{
-    std::string label = "LABEL";
-    SymbolTable::the().add(label, 1);
-    std::vector<std::string> operands = {"R2", label};
-    LoadInstruction loadInstruction(operands);
-    std::bitset<16> binaryLoadInstruction(loadInstruction.generate());
-
-    std::string labelOffset =
-        Assembler::toBinaryString(SymbolTable::the().get(label));
-    std::string expectedResult = loadInstruction.opcode() + "010" + labelOffset;
-    ASSERT_EQ(binaryLoadInstruction.to_string(), expectedResult);
 }
 
 TEST(Instructions, AndInstruction)
@@ -83,12 +88,12 @@ TEST(Instructions, BrInstruction)
         }
 
         BrInstruction brInstruction(conditionalCodes, label);
-        std::bitset<16> binaryLoadInstruction(brInstruction.generate());
+        std::bitset<16> binaryLdInstruction(brInstruction.generate());
 
         std::string labelOffset = Assembler::toBinaryString(SymbolTable::the().get(label));
         std::string expectedResult =
             brInstruction.opcode() + conditionalCodesResult + labelOffset;
-        ASSERT_EQ(binaryLoadInstruction.to_string(), expectedResult);
+        ASSERT_EQ(binaryLdInstruction.to_string(), expectedResult);
     };
 
     testBrInstructionWith("");
@@ -141,6 +146,14 @@ TEST(Instructions, JsrrInstruction)
             jsrInstruction.opcode() + "0" + "00" + lc3RegisterBin + "000000";
         ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
     }
+}
+
+TEST(Instructions, LdInstruction)
+{
+    std::string label = "LABEL";
+    SymbolTable::the().add(label, 1);
+
+    testAllTheRegisterFor<LdInstruction>(label);
 }
 
 int main(int argc, char* argv[])

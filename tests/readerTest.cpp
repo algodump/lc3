@@ -39,7 +39,7 @@ TEST(Reader, TestInstructions)
 
     EXPECT_TRUE(isOriginAndEndPresent(parsedInstructions));
     EXPECT_TRUE(is<AddInstruction>(parsedInstructions[1]));
-    EXPECT_TRUE(is<LoadInstruction>(parsedInstructions[2]));
+    EXPECT_TRUE(is<LdInstruction>(parsedInstructions[2]));
 }
 
 int main(int argc, char* argv[])

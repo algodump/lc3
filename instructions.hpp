@@ -57,16 +57,6 @@ class AddInstruction : public Instruction {
     std::vector<std::string> m_operands;
 };
 
-class LoadInstruction : public Instruction {
-  public:
-    LoadInstruction(const std::vector<std::string>& operands);
-    uint16_t generate() override;
-    std::string opcode() const override;
-
-  private:
-    std::vector<std::string> m_operands;
-};
-
 class AndInstruction : public Instruction {
   public:
     AndInstruction(const std::vector<std::string>& operands);
@@ -124,6 +114,17 @@ class JsrrInstruction : public Instruction {
 
   private:
     uint16_t m_baseRegister;
+};
+
+class LdInstruction : public Instruction {
+  public:
+    LdInstruction(uint16_t destinationRegister, const std::string& label);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint16_t m_destinationRegister;
+    std::string m_label;
 };
 
 class OriginDerective : public Instruction {

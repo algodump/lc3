@@ -5,6 +5,7 @@
 #include <string>
 
 namespace {
+// TODO: move this to the Reader
 std::string getRegister(const std::string& lc3register)
 {
     if (!lc3register.empty() && lc3register[0] == 'R') {
@@ -83,22 +84,6 @@ uint16_t AddInstruction::generate()
 
 std::string AddInstruction::opcode() const { return "0001"; }
 
-LoadInstruction::LoadInstruction(const std::vector<std::string>& operands)
-    : m_operands(operands)
-{
-}
-
-uint16_t LoadInstruction::generate()
-{
-    auto labelOffset = Assembler::toBinaryString(SymbolTable::the().get(m_operands[1]));
-    m_assembelyInstruction.set(opcode())
-        .set(getRegister(m_operands[0]))
-        .set(labelOffset);
-    return m_assembelyInstruction.instruction();
-}
-
-std::string LoadInstruction::opcode() const { return "0010"; }
-
 AndInstruction::AndInstruction(const std::vector<std::string>& operands)
     : m_operands(operands)
 {
@@ -133,7 +118,8 @@ BrInstruction::BrInstruction(const std::string& conditionalCodes,
 
 uint16_t BrInstruction::generate()
 {
-    auto labelOffset = Assembler::toBinaryString(SymbolTable::the().get(m_label));
+    auto labelOffset =
+        Assembler::toBinaryString(SymbolTable::the().get(m_label));
     // NOTE: BRnzp and BR are the same, so if either all codes are set or none,
     //       reuslt must be the same
     if (m_conditionalCodes.empty() || m_conditionalCodes.size() == 3) {
@@ -181,26 +167,22 @@ std::string RetInstruction::opcode() const { return "1100"; }
 
 JsrInstruction::JsrInstruction(const std::string& label) : m_label(label) {}
 
-uint16_t JsrInstruction::generate() 
+uint16_t JsrInstruction::generate()
 {
-    auto labelOffset = Assembler::toBinaryString<11>(SymbolTable::the().get(m_label));
-    m_assembelyInstruction.set(opcode())
-        .set('1')
-        .set(labelOffset);
+    auto labelOffset =
+        Assembler::toBinaryString<11>(SymbolTable::the().get(m_label));
+    m_assembelyInstruction.set(opcode()).set('1').set(labelOffset);
     return m_assembelyInstruction.instruction();
 }
 
-std::string JsrInstruction::opcode() const
-{
-    return "0100";
-}
+std::string JsrInstruction::opcode() const { return "0100"; }
 
 JsrrInstruction::JsrrInstruction(uint16_t baseRgister)
     : m_baseRegister(baseRgister)
 {
 }
 
-uint16_t JsrrInstruction::generate() 
+uint16_t JsrrInstruction::generate()
 {
     m_assembelyInstruction.set(opcode())
         .set('0')
@@ -210,10 +192,25 @@ uint16_t JsrrInstruction::generate()
     return m_assembelyInstruction.instruction();
 }
 
-std::string JsrrInstruction::opcode() const 
+std::string JsrrInstruction::opcode() const { return "0100"; }
+
+LdInstruction::LdInstruction(uint16_t destinationRegister,
+                                 const std::string& label)
+    : m_destinationRegister(destinationRegister), m_label(label)
 {
-    return "0100";
 }
+
+uint16_t LdInstruction::generate()
+{
+    auto labelOffset =
+        Assembler::toBinaryString(SymbolTable::the().get(m_label));
+    m_assembelyInstruction.set(opcode())
+        .set(getRegister(m_destinationRegister))
+        .set(labelOffset);
+    return m_assembelyInstruction.instruction();
+}
+
+std::string LdInstruction::opcode() const { return "0010"; }
 
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 

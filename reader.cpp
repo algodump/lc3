@@ -12,7 +12,7 @@ uint16_t to_int(const std::string& number)
     }
     return std::stoi(number);
 }
-}
+} // namespace
 Reader::Reader(const std::string& filename) : m_programName(filename) {}
 
 InstructionToken Reader::parseInsturction(const std::string& insturction)
@@ -35,7 +35,8 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
             commentBeing != std::string::npos && part[0] != '"') {
             operands.push_back(part.substr(0, commentBeing));
             break;
-        } else if (!part.empty() && part[0] == '"') {
+        }
+        else if (!part.empty() && part[0] == '"') {
             operands.push_back(part.substr(1, part.find_first_of('"', 1) - 1));
             break;
         }
@@ -62,8 +63,8 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
 
             // parse assembly directives
             if (name == ".ORIG") {
-                tokens.push_back(std::make_shared<OriginDerective>(
-                    to_int(operands[0])));
+                tokens.push_back(
+                    std::make_shared<OriginDerective>(to_int(operands[0])));
             }
             else if (name == ".FILL") {
                 tokens.push_back(
@@ -84,28 +85,40 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             // parse normal instructions
             else if (name == "ADD") {
                 tokens.push_back(std::make_shared<AddInstruction>(operands));
-            } else if (name == "AND") {
+            }
+            else if (name == "AND") {
                 tokens.push_back(std::make_shared<AndInstruction>(operands));
-            } else if (name.starts_with("BR")) {
+            }
+            else if (name.starts_with("BR")) {
                 // This instruction comes in 8 falvours)
                 // BRn BRzp BRz BRnp BRp BRnz BR BRnzp
                 auto conditionalCodes = name.substr(2);
                 auto label = operands[0];
-                tokens.push_back(std::make_shared<BrInstruction>(conditionalCodes, label));
-            } else if (name == "JMP") {
+                tokens.push_back(
+                    std::make_shared<BrInstruction>(conditionalCodes, label));
+            }
+            else if (name == "JMP") {
                 auto baseRegister = operands[0][1] - '0';
-                tokens.push_back(std::make_shared<JmpInsturction>(baseRegister));
-            } else if (name == "RET") {
+                tokens.push_back(
+                    std::make_shared<JmpInsturction>(baseRegister));
+            }
+            else if (name == "RET") {
                 tokens.push_back(std::make_shared<RetInstruction>());
-            } else if (name == "JSR") {
+            }
+            else if (name == "JSR") {
                 auto label = operands[0];
                 tokens.push_back(std::make_shared<JsrInstruction>(label));
-            } else if (name == "JSRR") {
+            }
+            else if (name == "JSRR") {
                 auto baseRegister = operands[0][1] - '0';
-                tokens.push_back(std::make_shared<JsrrInstruction>(baseRegister));
+                tokens.push_back(
+                    std::make_shared<JsrrInstruction>(baseRegister));
             }
             else if (name == "LD") {
-                tokens.push_back(std::make_shared<LoadInstruction>(operands));
+                auto destinationRegister = operands[0][1] - '0';
+                auto lable = operands[1];
+                tokens.push_back(std::make_shared<LdInstruction>(
+                    destinationRegister, label));
             }
             offsetFromOrigin++;
         }
