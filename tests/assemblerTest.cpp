@@ -5,18 +5,23 @@
 TEST(Instructions, AddInstruction)
 {
     std::vector<std::string> operands = {"R0", "R1", "R2"};
-
     AddInstruction addInstructions(operands);
     std::bitset<16> binaryAddInstruction(addInstructions.generate());
-    ASSERT_EQ(binaryAddInstruction.to_string(), "0001000001000010");
+
+    // NOTE: ideally retrive this binary register numbers form operands
+    std::string expectedResult =
+        addInstructions.opcode() + "000" + "001" + "000" + "010";
+    ASSERT_EQ(binaryAddInstruction.to_string(), expectedResult);
 
     std::vector<std::string> operandsWithImmediate = {"R0", "R1", "7"};
-
     AddInstruction addInstructionsWithImmediat(operandsWithImmediate);
     std::bitset<16> binaryAddInstructionWithImmediate(
         addInstructionsWithImmediat.generate());
+
+    std::string expectedResultWithImmediate =
+        addInstructionsWithImmediat.opcode() + "000" + "001" + "1" + "00111";
     ASSERT_EQ(binaryAddInstructionWithImmediate.to_string(),
-              "0001000001100111");
+              expectedResultWithImmediate);
 }
 
 TEST(Instructions, LoadInstruction)
@@ -24,27 +29,34 @@ TEST(Instructions, LoadInstruction)
     std::string label = "LABEL";
     SymbolTable::the().add(label, 1);
     std::vector<std::string> operands = {"R2", label};
-
     LoadInstruction loadInstruction(operands);
     std::bitset<16> binaryLoadInstruction(loadInstruction.generate());
-    ASSERT_EQ(binaryLoadInstruction.to_string(), "0010010000000001");
+
+    std::string labelOffset =
+        std::bitset<9>(SymbolTable::the().get(label)).to_string();
+    std::string expectedResult = loadInstruction.opcode() + "010" + labelOffset;
+    ASSERT_EQ(binaryLoadInstruction.to_string(), expectedResult);
 }
 
 TEST(Instructions, AndInstruction)
 {
     std::vector<std::string> operands = {"R7", "R1", "R2"};
-
     AndInstruction andInstruction(operands);
     std::bitset<16> binaryAddInstruction(andInstruction.generate());
-    ASSERT_EQ(binaryAddInstruction.to_string(), "0101111001000010");
+
+    std::string expectedResult =
+        andInstruction.opcode() + "111" + "001" + "000" + "010";
+    ASSERT_EQ(binaryAddInstruction.to_string(), expectedResult);
 
     std::vector<std::string> operandsWithImmediate = {"R7", "R1", "16"};
-
     AndInstruction andInstructionsWithImmediat(operandsWithImmediate);
     std::bitset<16> binaryAndInstructionWithImmediate(
         andInstructionsWithImmediat.generate());
+
+    std::string expectedResultWithImmediate =
+        andInstructionsWithImmediat.opcode() + "111" + "001" + "1" + "10000";
     ASSERT_EQ(binaryAndInstructionWithImmediate.to_string(),
-              "0101111001110000");
+              expectedResultWithImmediate);
 }
 
 TEST(Instructions, BrInstruction)
@@ -53,12 +65,11 @@ TEST(Instructions, BrInstruction)
         std::string label = "LABEL";
         SymbolTable::the().add(label, 1);
 
-        std::string opCode = "0000";
-
         std::string conditionalCodesResult = "";
         if (conditionalCodes.empty() || conditionalCodes.size() == 3) {
             conditionalCodesResult += "111";
-        } else {
+        }
+        else {
             char n =
                 conditionalCodes.find('n') != std::string::npos ? '1' : '0';
             char z =
@@ -70,15 +81,13 @@ TEST(Instructions, BrInstruction)
             conditionalCodesResult += p;
         }
 
-        std::string labelOffset =
-            std::bitset<9>(SymbolTable::the().get(label)).to_string();
-
-        std::string expectedResult =
-            opCode + conditionalCodesResult + labelOffset;
-
         BrInstruction brInstruction(conditionalCodes, label);
         std::bitset<16> binaryLoadInstruction(brInstruction.generate());
-
+        
+        std::string labelOffset =
+            std::bitset<9>(SymbolTable::the().get(label)).to_string();
+        std::string expectedResult =
+            brInstruction.opcode() + conditionalCodesResult + labelOffset;
         ASSERT_EQ(binaryLoadInstruction.to_string(), expectedResult);
     };
 
@@ -95,14 +104,14 @@ TEST(Instructions, BrInstruction)
 TEST(Instructions, JmpAndRetInsturctions)
 {
     // RET is special case of jump, so it's covered here
-    std::vector<uint8_t> lc3registers {0, 1, 2, 3, 4, 5, 6, 7};
+    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
     for (auto lc3Register : lc3registers) {
         JmpInsturction jmpIntruction(lc3Register);
-        std::string opcode = "1100";
-        std::string lc3RegisterBin = std::bitset<3>(lc3Register).to_string();
-        std::string expectedResult = opcode + "000" + lc3RegisterBin + "000000";
-
         std::bitset<16> binaryJumpInstruction(jmpIntruction.generate());
+
+        std::string lc3RegisterBin = std::bitset<3>(lc3Register).to_string();
+        std::string expectedResult =
+            jmpIntruction.opcode() + "000" + lc3RegisterBin + "000000";
         ASSERT_EQ(binaryJumpInstruction.to_string(), expectedResult);
     }
 }
