@@ -98,12 +98,12 @@ class RetInstruction : public Instruction {
 
 class JsrInstruction : public Instruction {
   public:
-    JsrInstruction(const std::string& label);
+    JsrInstruction(const std::string& labelOrOffset);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    std::string m_label;
+    std::string m_labelOrOffset;
 };
 
 class JsrrInstruction : public Instruction {
@@ -118,24 +118,24 @@ class JsrrInstruction : public Instruction {
 
 class LdInstruction : public Instruction {
   public:
-    LdInstruction(uint16_t destinationRegister, const std::string& label);
+    LdInstruction(uint16_t destinationRegister, const std::string& m_labelOrOffset);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
     uint16_t m_destinationRegister;
-    std::string m_label;
+    std::string m_labelOrOffset;
 };
 
 class LdiInsturction : public Instruction {
   public:
-    LdiInsturction(uint16_t destinationRegister, const std::string& label);
+    LdiInsturction(uint16_t destinationRegister, const std::string& m_labelOrOffset);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
     uint16_t m_destinationRegister;
-    std::string m_label;
+    std::string m_labelOrOffset;
 };
 
 class OriginDerective : public Instruction {

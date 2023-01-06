@@ -106,8 +106,8 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 tokens.push_back(std::make_shared<RetInstruction>());
             }
             else if (name == "JSR") {
-                auto labelToJump = operands[0];
-                tokens.push_back(std::make_shared<JsrInstruction>(labelToJump));
+                auto labelOrImmediateOffset = operands[0];
+                tokens.push_back(std::make_shared<JsrInstruction>(labelOrImmediateOffset));
             }
             else if (name == "JSRR") {
                 auto baseRegister = operands[0][1] - '0';
@@ -116,14 +116,14 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             }
             else if (name == "LD") {
                 auto destinationRegister = operands[0][1] - '0';
-                auto labelToLoad = operands[1];
+                auto labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<LdInstruction>(
-                    destinationRegister, labelToLoad));
+                    destinationRegister, labelOrImmediateOffset));
             } else if (name == "LDI") {
                 auto destinationRegister = operands[0][1] - '0';
-                auto labelToLoad = operands[1];
+                auto labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<LdiInsturction>(
-                    destinationRegister, labelToLoad));
+                    destinationRegister, labelOrImmediateOffset));
             }
             offsetFromOrigin++;
         }

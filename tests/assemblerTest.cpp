@@ -5,6 +5,8 @@
 
 namespace {
     template<class InstructionType> 
+    // TODO: Handle the case when offset is not retrieved from the label,
+    //       but it's given as it is.
     void testAllTheRegisterFor(const std::string& label) {
         std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
         for (auto lc3Register : lc3registers) {
@@ -33,7 +35,7 @@ TEST(Instructions, AddInstruction)
         addInstructions.opcode() + "000" + "001" + "000" + "010";
     ASSERT_EQ(binaryAddInstruction.to_string(), expectedResult);
 
-    std::vector<std::string> operandsWithImmediate = {"R0", "R1", "7"};
+    std::vector<std::string> operandsWithImmediate = {"R0", "R1", "#7"};
     AddInstruction addInstructionsWithImmediat(operandsWithImmediate);
     std::bitset<16> binaryAddInstructionWithImmediate(
         addInstructionsWithImmediat.generate());
@@ -54,7 +56,7 @@ TEST(Instructions, AndInstruction)
         andInstruction.opcode() + "111" + "001" + "000" + "010";
     ASSERT_EQ(binaryAddInstruction.to_string(), expectedResult);
 
-    std::vector<std::string> operandsWithImmediate = {"R7", "R1", "16"};
+    std::vector<std::string> operandsWithImmediate = {"R7", "R1", "#16"};
     AndInstruction andInstructionsWithImmediat(operandsWithImmediate);
     std::bitset<16> binaryAndInstructionWithImmediate(
         andInstructionsWithImmediat.generate());
@@ -129,6 +131,8 @@ TEST(Instructions, JsrInstruction)
     JsrInstruction jsrInstruction(label);
     std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
 
+    // TODO: Handle the case when offset is not retrieved from the label,
+    //       but it's given as it is.
     std::string labelOffset = Assembler::toBinaryString<11>(SymbolTable::the().get(label));
     std::string expectedResult = jsrInstruction.opcode() + "1" + labelOffset;
     ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
