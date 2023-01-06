@@ -212,6 +212,24 @@ uint16_t LdInstruction::generate()
 
 std::string LdInstruction::opcode() const { return "0010"; }
 
+LdiInsturction::LdiInsturction(uint16_t destinationRegister,
+                                 const std::string& label)
+    : m_destinationRegister(destinationRegister), m_label(label)
+{
+}
+
+uint16_t LdiInsturction::generate()
+{
+    auto labelOffset =
+        Assembler::toBinaryString(SymbolTable::the().get(m_label));
+    m_assembelyInstruction.set(opcode())
+        .set(getRegister(m_destinationRegister))
+        .set(labelOffset);
+    return m_assembelyInstruction.instruction();
+}
+
+std::string LdiInsturction::opcode() const { return "1010"; }
+
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
 uint16_t OriginDerective::generate() { return m_origin; }

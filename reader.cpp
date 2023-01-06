@@ -119,6 +119,11 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 auto lable = operands[1];
                 tokens.push_back(std::make_shared<LdInstruction>(
                     destinationRegister, label));
+            } else if (name == "LDI") {
+                auto destinationRegister = operands[0][1] - '0';
+                auto lable = operands[1];
+                tokens.push_back(std::make_shared<LdiInsturction>(
+                    destinationRegister, label));
             }
             offsetFromOrigin++;
         }

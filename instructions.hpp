@@ -127,6 +127,17 @@ class LdInstruction : public Instruction {
     std::string m_label;
 };
 
+class LdiInsturction : public Instruction {
+  public:
+    LdiInsturction(uint16_t destinationRegister, const std::string& label);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint16_t m_destinationRegister;
+    std::string m_label;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);

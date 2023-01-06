@@ -156,6 +156,14 @@ TEST(Instructions, LdInstruction)
     testAllTheRegisterFor<LdInstruction>(label);
 }
 
+TEST(Instructions, LdiInsturction)
+{
+    std::string label = "WOW";
+    SymbolTable::the().add(label, 42);
+
+    testAllTheRegisterFor<LdiInsturction>(label);
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
