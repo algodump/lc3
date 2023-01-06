@@ -92,6 +92,11 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 auto conditionalCodes = name.substr(2);
                 auto label = operands[0];
                 tokens.push_back(std::make_shared<BrInstruction>(conditionalCodes, label));
+            } else if (name == "JMP") {
+                auto baseRegister = operands[0][1] - '0';
+                tokens.push_back(std::make_shared<JmpInsturction>(baseRegister));
+            } else if (name == "RET") {
+                tokens.push_back(std::make_shared<RetInstruction>());
             }
             else if (name == "LD") {
                 tokens.push_back(std::make_shared<LoadInstruction>(operands));

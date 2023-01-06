@@ -83,6 +83,21 @@ class BrInstruction : public Instruction {
     std::string m_label;
 };
 
+class JmpInsturction : public Instruction {
+  public:
+    JmpInsturction(uint16_t baseRegister);
+    uint16_t generate() override;
+
+  private:
+    uint16_t m_baseRegister;
+};
+
+class RetInstruction : public Instruction {
+  public:
+    RetInstruction() = default;
+    uint16_t generate() override;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);

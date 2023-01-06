@@ -92,6 +92,21 @@ TEST(Instructions, BrInstruction)
     testBrInstructionWith("nzp");
 }
 
+TEST(Instructions, JmpAndRetInsturctions)
+{
+    // RET is special case of jump, so it's covered here
+    std::vector<uint8_t> lc3registers {0, 1, 2, 3, 4, 5, 6, 7};
+    for (auto lc3Register : lc3registers) {
+        JmpInsturction jmpIntruction(lc3Register);
+        std::string opcode = "1100";
+        std::string lc3RegisterBin = std::bitset<3>(lc3Register).to_string();
+        std::string expectedResult = opcode + "000" + lc3RegisterBin + "000000";
+
+        std::bitset<16> binaryJumpInstruction(jmpIntruction.generate());
+        ASSERT_EQ(binaryJumpInstruction.to_string(), expectedResult);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);

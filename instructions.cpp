@@ -13,6 +13,11 @@ std::string getRegister(const std::string& lc3register)
     return lc3register;
 }
 
+std::string getRegister(uint16_t lc3register)
+{
+    return std::bitset<3>(lc3register).to_string();
+}
+
 template <size_t N> std::string getImmediate(const std::string& immediateValue)
 {
     // TODO: check for overflow
@@ -141,6 +146,25 @@ uint16_t BrInstruction::generate()
             labelOffset.to_string());
     }
     return m_assembelyInstruction.instruction();
+}
+
+JmpInsturction::JmpInsturction(uint16_t baseRegister)
+    : m_baseRegister(baseRegister)
+{
+}
+
+uint16_t JmpInsturction::generate() 
+{
+    m_assembelyInstruction.set("1100")
+        .set("000")
+        .set(getRegister(m_baseRegister))
+        .set("000000");
+    return m_assembelyInstruction.instruction();
+}
+
+uint16_t RetInstruction::generate() 
+{
+    return JmpInsturction(7).generate();
 }
 
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
