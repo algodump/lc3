@@ -97,6 +97,12 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 tokens.push_back(std::make_shared<JmpInsturction>(baseRegister));
             } else if (name == "RET") {
                 tokens.push_back(std::make_shared<RetInstruction>());
+            } else if (name == "JSR") {
+                auto label = operands[0];
+                tokens.push_back(std::make_shared<JsrInstruction>(label));
+            } else if (name == "JSRR") {
+                auto baseRegister = operands[0][1] - '0';
+                tokens.push_back(std::make_shared<JsrrInstruction>(baseRegister));
             }
             else if (name == "LD") {
                 tokens.push_back(std::make_shared<LoadInstruction>(operands));

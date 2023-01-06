@@ -179,6 +179,42 @@ uint16_t RetInstruction::generate() { return JmpInsturction(7).generate(); }
 
 std::string RetInstruction::opcode() const { return "1100"; }
 
+JsrInstruction::JsrInstruction(const std::string& label) : m_label(label) {}
+
+uint16_t JsrInstruction::generate() 
+{
+    std::bitset<11>labelOffset(SymbolTable::the().get(m_label));
+    m_assembelyInstruction.set(opcode())
+        .set('1')
+        .set(labelOffset.to_string());
+    return m_assembelyInstruction.instruction();
+}
+
+std::string JsrInstruction::opcode() const
+{
+    return "0100";
+}
+
+JsrrInstruction::JsrrInstruction(uint16_t baseRgister)
+    : m_baseRegister(baseRgister)
+{
+}
+
+uint16_t JsrrInstruction::generate() 
+{
+    m_assembelyInstruction.set(opcode())
+        .set('0')
+        .set("00")
+        .set(getRegister(m_baseRegister))
+        .set("000000");
+    return m_assembelyInstruction.instruction();
+}
+
+std::string JsrrInstruction::opcode() const 
+{
+    return "0100";
+}
+
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
 uint16_t OriginDerective::generate() { return m_origin; }

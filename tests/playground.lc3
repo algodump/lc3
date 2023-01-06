@@ -15,8 +15,14 @@ BRp LABEL
 BRnz LABEL
 BRnzp LABEL
 
-LD R1, EXIT
-JMP R1
+; I hope it doesn't produce infinite loop:)
+JSR HERE
+
+HERE LD R1, EXIT
+LD R2, TOJUMP
+JSRR R2
+
+TOJUMP JMP R1
 
 EXIT RET
 

@@ -83,7 +83,7 @@ TEST(Instructions, BrInstruction)
 
         BrInstruction brInstruction(conditionalCodes, label);
         std::bitset<16> binaryLoadInstruction(brInstruction.generate());
-        
+
         std::string labelOffset =
             std::bitset<9>(SymbolTable::the().get(label)).to_string();
         std::string expectedResult =
@@ -113,6 +113,33 @@ TEST(Instructions, JmpAndRetInsturctions)
         std::string expectedResult =
             jmpIntruction.opcode() + "000" + lc3RegisterBin + "000000";
         ASSERT_EQ(binaryJumpInstruction.to_string(), expectedResult);
+    }
+}
+
+TEST(Instructions, JsrInstruction)
+{
+    std::string label = "LABEL";
+    SymbolTable::the().add(label, 4);
+
+    JsrInstruction jsrInstruction(label);
+    std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
+
+    std::string labelOffset = std::bitset<11>(SymbolTable::the().get(label)).to_string();
+    std::string expectedResult = jsrInstruction.opcode() + "1" + labelOffset;
+    ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
+}
+
+TEST(Instructions, JsrrInstruction)
+{
+    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
+    for (auto lc3Register : lc3registers) {
+        JsrrInstruction jsrInstruction(lc3Register);
+        std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
+
+        std::string lc3RegisterBin = std::bitset<3>(lc3Register).to_string();
+        std::string expectedResult =
+            jsrInstruction.opcode() + "0" + "00" + lc3RegisterBin + "000000";
+        ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
     }
 }
 

@@ -106,6 +106,26 @@ class RetInstruction : public Instruction {
     std::string opcode() const override;
 };
 
+class JsrInstruction : public Instruction {
+  public:
+    JsrInstruction(const std::string& label);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    std::string m_label;
+};
+
+class JsrrInstruction : public Instruction {
+  public:
+    JsrrInstruction(uint16_t baseRegister);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint16_t m_baseRegister;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);
