@@ -37,6 +37,8 @@ class InstructionBuilder {
 class Instruction {
   public:
     virtual uint16_t generate() = 0;
+    virtual std::string opcode() const;
+
     virtual ~Instruction();
 
   protected:
@@ -49,6 +51,7 @@ class AddInstruction : public Instruction {
     //        becaues vector<string> is to vague
     AddInstruction(const std::vector<std::string>& operands);
     uint16_t generate() override;
+    std::string opcode() const override;
 
   private:
     std::vector<std::string> m_operands;
@@ -58,6 +61,7 @@ class LoadInstruction : public Instruction {
   public:
     LoadInstruction(const std::vector<std::string>& operands);
     uint16_t generate() override;
+    std::string opcode() const override;
 
   private:
     std::vector<std::string> m_operands;
@@ -67,6 +71,7 @@ class AndInstruction : public Instruction {
   public:
     AndInstruction(const std::vector<std::string>& operands);
     uint16_t generate() override;
+    std::string opcode() const override;
 
   private:
     std::vector<std::string> m_operands;
@@ -77,6 +82,7 @@ class BrInstruction : public Instruction {
     BrInstruction(const std::string& conditionalCodes,
                   const std::string& label);
     uint16_t generate() override;
+    std::string opcode() const override;
 
   private:
     std::string m_conditionalCodes;
@@ -87,6 +93,7 @@ class JmpInsturction : public Instruction {
   public:
     JmpInsturction(uint16_t baseRegister);
     uint16_t generate() override;
+    std::string opcode() const override;
 
   private:
     uint16_t m_baseRegister;
@@ -96,6 +103,7 @@ class RetInstruction : public Instruction {
   public:
     RetInstruction() = default;
     uint16_t generate() override;
+    std::string opcode() const override;
 };
 
 class OriginDerective : public Instruction {

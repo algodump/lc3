@@ -48,6 +48,8 @@ uint16_t InstructionBuilder::instruction() const
     return m_instruction.to_ulong();
 }
 
+std::string Instruction::opcode() const { return ""; }
+
 Instruction::~Instruction() {}
 
 bool isImmediate(const std::string& thirdOperand)
@@ -63,14 +65,14 @@ AddInstruction::AddInstruction(const std::vector<std::string>& operands)
 uint16_t AddInstruction::generate()
 {
     if (isImmediate(m_operands[2])) {
-        m_assembelyInstruction.set("0001")
+        m_assembelyInstruction.set(opcode())
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
             .set('1')
             .set(getImmediate<5>(m_operands[2]));
     }
     else {
-        m_assembelyInstruction.set("0001")
+        m_assembelyInstruction.set(opcode())
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
             .set("000")
@@ -78,6 +80,8 @@ uint16_t AddInstruction::generate()
     }
     return m_assembelyInstruction.instruction();
 }
+
+std::string AddInstruction::opcode() const { return "0001"; }
 
 LoadInstruction::LoadInstruction(const std::vector<std::string>& operands)
     : m_operands(operands)
@@ -87,11 +91,13 @@ LoadInstruction::LoadInstruction(const std::vector<std::string>& operands)
 uint16_t LoadInstruction::generate()
 {
     std::bitset<9> labelOffset(SymbolTable::the().get(m_operands[1]));
-    m_assembelyInstruction.set("0010")
+    m_assembelyInstruction.set(opcode())
         .set(getRegister(m_operands[0]))
         .set(labelOffset.to_string());
     return m_assembelyInstruction.instruction();
 }
+
+std::string LoadInstruction::opcode() const { return "0010"; }
 
 AndInstruction::AndInstruction(const std::vector<std::string>& operands)
     : m_operands(operands)
@@ -101,14 +107,14 @@ AndInstruction::AndInstruction(const std::vector<std::string>& operands)
 uint16_t AndInstruction::generate()
 {
     if (isImmediate(m_operands[2])) {
-        m_assembelyInstruction.set("0101")
+        m_assembelyInstruction.set(opcode())
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
             .set('1')
             .set(getImmediate<5>(m_operands[2]));
     }
     else {
-        m_assembelyInstruction.set("0101")
+        m_assembelyInstruction.set(opcode())
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
             .set("000")
@@ -116,6 +122,8 @@ uint16_t AndInstruction::generate()
     }
     return m_assembelyInstruction.instruction();
 }
+
+std::string AndInstruction::opcode() const { return "0101"; }
 
 BrInstruction::BrInstruction(const std::string& conditionalCodes,
                              const std::string& label)
@@ -126,46 +134,50 @@ BrInstruction::BrInstruction(const std::string& conditionalCodes,
 uint16_t BrInstruction::generate()
 {
     std::bitset<9> labelOffset(SymbolTable::the().get(m_label));
-    std::string opcode = "0000";
     // NOTE: BRnzp and BR are the same, so if either all codes are set or none,
     //       reuslt must be the same
     if (m_conditionalCodes.empty() || m_conditionalCodes.size() == 3) {
         // clang-format off
-           m_assembelyInstruction.set(opcode)
+           m_assembelyInstruction.set(opcode())
             .set('1')
             .set('1')
             .set('1')
             .set(labelOffset.to_string());
-        // clang-format on
     }
     else {
         char n = m_conditionalCodes.find('n') != std::string::npos ? '1' : '0';
         char z = m_conditionalCodes.find('z') != std::string::npos ? '1' : '0';
         char p = m_conditionalCodes.find('p') != std::string::npos ? '1' : '0';
-        m_assembelyInstruction.set(opcode).set(n).set(z).set(p).set(
-            labelOffset.to_string());
-    }
+        m_assembelyInstruction.set(opcode())
+            .set(n)
+            .set(z)
+            .set(p)
+            .set(labelOffset.to_string());
+    } // clang-format on
     return m_assembelyInstruction.instruction();
 }
+
+std::string BrInstruction::opcode() const { return "0000"; }
 
 JmpInsturction::JmpInsturction(uint16_t baseRegister)
     : m_baseRegister(baseRegister)
 {
 }
 
-uint16_t JmpInsturction::generate() 
+uint16_t JmpInsturction::generate()
 {
-    m_assembelyInstruction.set("1100")
+    m_assembelyInstruction.set(opcode())
         .set("000")
         .set(getRegister(m_baseRegister))
         .set("000000");
     return m_assembelyInstruction.instruction();
 }
 
-uint16_t RetInstruction::generate() 
-{
-    return JmpInsturction(7).generate();
-}
+std::string JmpInsturction::opcode() const { return "1100"; }
+
+uint16_t RetInstruction::generate() { return JmpInsturction(7).generate(); }
+
+std::string RetInstruction::opcode() const { return "1100"; }
 
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
