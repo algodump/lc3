@@ -8,20 +8,20 @@ namespace {
 std::string getRegister(const std::string& lc3register)
 {
     if (!lc3register.empty() && lc3register[0] == 'R') {
-        return std::bitset<3>(lc3register[1] - '0').to_string();
+        return Assembler::toBinaryString<3>(lc3register[1] - '0');
     }
     return lc3register;
 }
 
 std::string getRegister(uint16_t lc3register)
 {
-    return std::bitset<3>(lc3register).to_string();
+    return Assembler::toBinaryString<3>(lc3register);
 }
 
 template <size_t N> std::string getImmediate(const std::string& immediateValue)
 {
     // TODO: check for overflow
-    return std::bitset<N>(std::stoi(immediateValue)).to_string();
+    return Assembler::toBinaryString<N>(std::stoi(immediateValue));
 }
 } // namespace
 
@@ -90,10 +90,10 @@ LoadInstruction::LoadInstruction(const std::vector<std::string>& operands)
 
 uint16_t LoadInstruction::generate()
 {
-    std::bitset<9> labelOffset(SymbolTable::the().get(m_operands[1]));
+    auto labelOffset = Assembler::toBinaryString(SymbolTable::the().get(m_operands[1]));
     m_assembelyInstruction.set(opcode())
         .set(getRegister(m_operands[0]))
-        .set(labelOffset.to_string());
+        .set(labelOffset);
     return m_assembelyInstruction.instruction();
 }
 
@@ -133,7 +133,7 @@ BrInstruction::BrInstruction(const std::string& conditionalCodes,
 
 uint16_t BrInstruction::generate()
 {
-    std::bitset<9> labelOffset(SymbolTable::the().get(m_label));
+    auto labelOffset = Assembler::toBinaryString(SymbolTable::the().get(m_label));
     // NOTE: BRnzp and BR are the same, so if either all codes are set or none,
     //       reuslt must be the same
     if (m_conditionalCodes.empty() || m_conditionalCodes.size() == 3) {
@@ -142,7 +142,7 @@ uint16_t BrInstruction::generate()
             .set('1')
             .set('1')
             .set('1')
-            .set(labelOffset.to_string());
+            .set(labelOffset);
     }
     else {
         char n = m_conditionalCodes.find('n') != std::string::npos ? '1' : '0';
@@ -152,7 +152,7 @@ uint16_t BrInstruction::generate()
             .set(n)
             .set(z)
             .set(p)
-            .set(labelOffset.to_string());
+            .set(labelOffset);
     } // clang-format on
     return m_assembelyInstruction.instruction();
 }
@@ -183,10 +183,10 @@ JsrInstruction::JsrInstruction(const std::string& label) : m_label(label) {}
 
 uint16_t JsrInstruction::generate() 
 {
-    std::bitset<11>labelOffset(SymbolTable::the().get(m_label));
+    auto labelOffset = Assembler::toBinaryString<11>(SymbolTable::the().get(m_label));
     m_assembelyInstruction.set(opcode())
         .set('1')
-        .set(labelOffset.to_string());
+        .set(labelOffset);
     return m_assembelyInstruction.instruction();
 }
 

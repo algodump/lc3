@@ -18,6 +18,11 @@ class Assembler {
     Assembler(std::vector<std::shared_ptr<Instruction>>& instructions);
     void gnenerate(Writer& writer);
 
+    template<uint16_t bitcount = 9>
+    static std::string toBinaryString(uint16_t number) {
+        return std::bitset<bitcount>(number).to_string();
+    }
+
   private:
     std::vector<std::shared_ptr<Instruction>> m_instructions;
 };

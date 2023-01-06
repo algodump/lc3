@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "../reader.hpp"
+#include "../assembler.hpp"
 
 TEST(Instructions, AddInstruction)
 {
@@ -33,7 +34,7 @@ TEST(Instructions, LoadInstruction)
     std::bitset<16> binaryLoadInstruction(loadInstruction.generate());
 
     std::string labelOffset =
-        std::bitset<9>(SymbolTable::the().get(label)).to_string();
+        Assembler::toBinaryString(SymbolTable::the().get(label));
     std::string expectedResult = loadInstruction.opcode() + "010" + labelOffset;
     ASSERT_EQ(binaryLoadInstruction.to_string(), expectedResult);
 }
@@ -84,8 +85,7 @@ TEST(Instructions, BrInstruction)
         BrInstruction brInstruction(conditionalCodes, label);
         std::bitset<16> binaryLoadInstruction(brInstruction.generate());
 
-        std::string labelOffset =
-            std::bitset<9>(SymbolTable::the().get(label)).to_string();
+        std::string labelOffset = Assembler::toBinaryString(SymbolTable::the().get(label));
         std::string expectedResult =
             brInstruction.opcode() + conditionalCodesResult + labelOffset;
         ASSERT_EQ(binaryLoadInstruction.to_string(), expectedResult);
@@ -109,7 +109,7 @@ TEST(Instructions, JmpAndRetInsturctions)
         JmpInsturction jmpIntruction(lc3Register);
         std::bitset<16> binaryJumpInstruction(jmpIntruction.generate());
 
-        std::string lc3RegisterBin = std::bitset<3>(lc3Register).to_string();
+        std::string lc3RegisterBin = Assembler::toBinaryString<3>(lc3Register);
         std::string expectedResult =
             jmpIntruction.opcode() + "000" + lc3RegisterBin + "000000";
         ASSERT_EQ(binaryJumpInstruction.to_string(), expectedResult);
@@ -124,7 +124,7 @@ TEST(Instructions, JsrInstruction)
     JsrInstruction jsrInstruction(label);
     std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
 
-    std::string labelOffset = std::bitset<11>(SymbolTable::the().get(label)).to_string();
+    std::string labelOffset = Assembler::toBinaryString<11>(SymbolTable::the().get(label));
     std::string expectedResult = jsrInstruction.opcode() + "1" + labelOffset;
     ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
 }
@@ -136,7 +136,7 @@ TEST(Instructions, JsrrInstruction)
         JsrrInstruction jsrInstruction(lc3Register);
         std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
 
-        std::string lc3RegisterBin = std::bitset<3>(lc3Register).to_string();
+        std::string lc3RegisterBin = Assembler::toBinaryString<3>(lc3Register);
         std::string expectedResult =
             jsrInstruction.opcode() + "0" + "00" + lc3RegisterBin + "000000";
         ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
