@@ -93,9 +93,9 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 // This instruction comes in 8 falvours)
                 // BRn BRzp BRz BRnp BRp BRnz BR BRnzp
                 auto conditionalCodes = name.substr(2);
-                auto label = operands[0];
+                auto labelToBranch = operands[0];
                 tokens.push_back(
-                    std::make_shared<BrInstruction>(conditionalCodes, label));
+                    std::make_shared<BrInstruction>(conditionalCodes, labelToBranch));
             }
             else if (name == "JMP") {
                 auto baseRegister = operands[0][1] - '0';
@@ -106,8 +106,8 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 tokens.push_back(std::make_shared<RetInstruction>());
             }
             else if (name == "JSR") {
-                auto label = operands[0];
-                tokens.push_back(std::make_shared<JsrInstruction>(label));
+                auto labelToJump = operands[0];
+                tokens.push_back(std::make_shared<JsrInstruction>(labelToJump));
             }
             else if (name == "JSRR") {
                 auto baseRegister = operands[0][1] - '0';
@@ -116,14 +116,14 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             }
             else if (name == "LD") {
                 auto destinationRegister = operands[0][1] - '0';
-                auto lable = operands[1];
+                auto labelToLoad = operands[1];
                 tokens.push_back(std::make_shared<LdInstruction>(
-                    destinationRegister, label));
+                    destinationRegister, labelToLoad));
             } else if (name == "LDI") {
                 auto destinationRegister = operands[0][1] - '0';
-                auto lable = operands[1];
+                auto labelToLoad = operands[1];
                 tokens.push_back(std::make_shared<LdiInsturction>(
-                    destinationRegister, label));
+                    destinationRegister, labelToLoad));
             }
             offsetFromOrigin++;
         }
