@@ -227,6 +227,19 @@ class TrapInstruction : public Instruction {
     uint8_t m_trapVector;
 };
 
+class StrInstruction : public Instruction {
+  public:
+    StrInstruction(uint8_t sourceRegister, uint8_t baseRegister,
+                   const std::string& labelOrOffset);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint8_t m_sourceRegister;
+    uint8_t m_baseRegister;
+    std::string m_labelOrOffset;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);

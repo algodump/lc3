@@ -196,7 +196,16 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             }
             else if (name == "RTI") {
                 tokens.push_back(std::make_shared<RtiInstruction>());
-            } else if (name == "TRAP") {
+            }
+            else if (name == "STR") {
+                uint8_t sourceRegister =
+                    retrieveRegisterNumber(operands[0]);
+                uint8_t baseRegister = retrieveRegisterNumber(operands[1]);
+                std::string labelOrImmediateOffset = operands[2];
+                tokens.push_back(std::make_shared<StrInstruction>(
+                    sourceRegister, baseRegister, labelOrImmediateOffset));
+            }
+            else if (name == "TRAP") {
                 uint8_t trapVector = to_int(operands[0]);
                 tokens.push_back(std::make_shared<TrapInstruction>(trapVector));
             }

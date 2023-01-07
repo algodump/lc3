@@ -348,10 +348,26 @@ uint16_t TrapInstruction::generate()
     return m_assembelyInstruction.instruction();
 }
 
-std::string TrapInstruction::opcode() const 
+std::string TrapInstruction::opcode() const { return "1111"; }
+
+StrInstruction::StrInstruction(uint8_t sourceRegister, uint8_t baseRegister,
+                               const std::string& labelOrOffset)
+    : m_sourceRegister(sourceRegister), m_baseRegister(baseRegister),
+      m_labelOrOffset(labelOrOffset)
 {
-    return "1111";
 }
+
+uint16_t StrInstruction::generate()
+{
+    auto offset = Assembler::getBinaryOffsetToJumpTo<6>(m_labelOrOffset);
+    m_assembelyInstruction.set(opcode())
+        .set(convertRegisterToBinary(m_sourceRegister))
+        .set(convertRegisterToBinary(m_baseRegister))
+        .set(offset);
+    return m_assembelyInstruction.instruction();
+}
+
+std::string StrInstruction::opcode() const { return "0111"; }
 
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 

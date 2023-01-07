@@ -258,6 +258,31 @@ TEST(Instructions, RtiInstruction)
               "1000000000000000");
 }
 
+TEST(Instructions, StrInstruction)
+{
+    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
+    for (auto lc3BaseRegister : lc3registers) {
+        std::string offset = "#5";
+        uint8_t lc3SourceRegister =
+            (lc3BaseRegister + 1) % lc3registers.size();
+        StrInstruction strInstruction(lc3SourceRegister,
+                                      lc3BaseRegister,
+                                      offset);
+        std::bitset<16> binaryStrInstruction(strInstruction.generate());
+
+        std::string lc3BaseRegisterBin =
+            Assembler::toBinaryString<3>(lc3BaseRegister);
+        std::string lc3DestinationRegisterBin =
+            Assembler::toBinaryString<3>(lc3SourceRegister);
+        std::string binaryOffset = Assembler::getBinaryOffsetToJumpTo<6>(offset);
+
+        std::string expectedResult = strInstruction.opcode() +
+                                     lc3DestinationRegisterBin +
+                                     lc3BaseRegisterBin + binaryOffset;
+        ASSERT_EQ(binaryStrInstruction.to_string(), expectedResult);
+    }
+}
+
 TEST(Instructions, TrapInstruction)
 {
     uint8_t trapVector = 0x32;
