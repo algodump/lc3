@@ -3,7 +3,6 @@
 #include "../assembler.hpp"
 #include "../reader.hpp"
 
-
 namespace {
 template <class InstructionType>
 void testAllTheRegisterFor(const std::string& offsetOrLabel)
@@ -13,7 +12,8 @@ void testAllTheRegisterFor(const std::string& offsetOrLabel)
         InstructionType instruction(lc3Register, offsetOrLabel);
         std::bitset<16> binaryInstruction(instruction.generate());
 
-        std::string offset = Assembler::getBinaryOffsetToJumpTo<9>(offsetOrLabel);
+        std::string offset =
+            Assembler::getBinaryOffsetToJumpTo<9>(offsetOrLabel);
         std::string lc3RegisterBin = Assembler::toBinaryString<3>(lc3Register);
         std::string expectedResult =
             instruction.opcode() + lc3RegisterBin + offset;
@@ -21,14 +21,14 @@ void testAllTheRegisterFor(const std::string& offsetOrLabel)
     }
 }
 
-template<class InstructionType>
+template <class InstructionType>
 void testForDestinationSource1Source2OrImmediate()
 {
     uint8_t destinationRegister = 0;
     uint8_t source1Register = 1;
     uint8_t source2Register = 2;
     InstructionType addInstructions(destinationRegister, source1Register,
-                                   source2Register, false);
+                                    source2Register, false);
     std::bitset<16> binaryAddInstruction(addInstructions.generate());
 
     std::string expectedResult =
@@ -126,9 +126,9 @@ TEST(Instructions, JsrInstruction)
     auto testJsr = [](const std::string& labelOrOffset) {
         JsrInstruction jsrInstruction(labelOrOffset);
         std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
-        std::string offset = Assembler::getBinaryOffsetToJumpTo<11>(labelOrOffset);
-        std::string expectedResult =
-            jsrInstruction.opcode() + "1" + offset;
+        std::string offset =
+            Assembler::getBinaryOffsetToJumpTo<11>(labelOrOffset);
+        std::string expectedResult = jsrInstruction.opcode() + "1" + offset;
         ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
     };
 
@@ -174,6 +174,31 @@ TEST(Instructions, LdiInsturction)
     testAllTheRegisterFor<LdiInsturction>(offset);
 }
 
+TEST(Instructions, LdrInstruction)
+{
+    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
+    for (auto lc3BaseRegister : lc3registers) {
+        std::string offset = "#5";
+        uint8_t lc3DestinationRegister =
+            (lc3BaseRegister + 1) % lc3registers.size();
+        LdrInstruction ldrInstruction(lc3DestinationRegister, lc3BaseRegister,
+                                      offset);
+        std::bitset<16> binaryLdrInstruction(ldrInstruction.generate());
+
+        std::string lc3BaseRegisterBin =
+            Assembler::toBinaryString<3>(lc3BaseRegister);
+        std::string lc3DestinationRegisterBin =
+            Assembler::toBinaryString<3>(lc3DestinationRegister);
+        std::string binaryOffset =
+            Assembler::getBinaryOffsetToJumpTo<6>(offset);
+
+        std::string expectedResult = ldrInstruction.opcode() +
+                                     lc3DestinationRegisterBin +
+                                     lc3BaseRegisterBin + binaryOffset;
+        ASSERT_EQ(binaryLdrInstruction.to_string(), expectedResult);
+    }
+}
+
 TEST(Instructions, LeaInstruction)
 {
     std::string label = "lea";
@@ -182,51 +207,6 @@ TEST(Instructions, LeaInstruction)
 
     std::string offset = "#3333";
     testAllTheRegisterFor<LeaInstruction>(offset);
-}
-
-TEST(Instructions, StInstruction)
-{
-    std::string label = "st";
-    SymbolTable::the().add(label, 11);
-    testAllTheRegisterFor<StInstruction>(label);
-
-    std::string offset = "#4444";
-    testAllTheRegisterFor<StInstruction>(offset);
-}
-
-TEST(Instructions, StiInstruction)
-{
-    std::string label = "sti";
-    SymbolTable::the().add(label, 9);
-    testAllTheRegisterFor<StiInstruction>(label);
-
-    std::string offset = "#5555";
-    testAllTheRegisterFor<StiInstruction>(offset);
-}
-
-TEST(Instructions, LdrInstruction)
-{
-    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
-    for (auto lc3BaseRegister : lc3registers) {
-        std::string offset = "#5";
-        uint8_t lc3DestinationRegister =
-            (lc3BaseRegister + 1) % lc3registers.size();
-        LdrInstruction ldrInstruction(lc3DestinationRegister,
-                                      lc3BaseRegister,
-                                      offset);
-        std::bitset<16> binaryLdrInstruction(ldrInstruction.generate());
-
-        std::string lc3BaseRegisterBin =
-            Assembler::toBinaryString<3>(lc3BaseRegister);
-        std::string lc3DestinationRegisterBin =
-            Assembler::toBinaryString<3>(lc3DestinationRegister);
-        std::string binaryOffset = Assembler::getBinaryOffsetToJumpTo<6>(offset);
-
-        std::string expectedResult = ldrInstruction.opcode() +
-                                     lc3DestinationRegisterBin +
-                                     lc3BaseRegisterBin + binaryOffset;
-        ASSERT_EQ(binaryLdrInstruction.to_string(), expectedResult);
-    }
 }
 
 TEST(Instructions, NotInstruction)
@@ -258,15 +238,33 @@ TEST(Instructions, RtiInstruction)
               "1000000000000000");
 }
 
+TEST(Instructions, StInstruction)
+{
+    std::string label = "st";
+    SymbolTable::the().add(label, 11);
+    testAllTheRegisterFor<StInstruction>(label);
+
+    std::string offset = "#4444";
+    testAllTheRegisterFor<StInstruction>(offset);
+}
+
+TEST(Instructions, StiInstruction)
+{
+    std::string label = "sti";
+    SymbolTable::the().add(label, 9);
+    testAllTheRegisterFor<StiInstruction>(label);
+
+    std::string offset = "#5555";
+    testAllTheRegisterFor<StiInstruction>(offset);
+}
+
 TEST(Instructions, StrInstruction)
 {
     std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
     for (auto lc3BaseRegister : lc3registers) {
         std::string offset = "#5";
-        uint8_t lc3SourceRegister =
-            (lc3BaseRegister + 1) % lc3registers.size();
-        StrInstruction strInstruction(lc3SourceRegister,
-                                      lc3BaseRegister,
+        uint8_t lc3SourceRegister = (lc3BaseRegister + 1) % lc3registers.size();
+        StrInstruction strInstruction(lc3SourceRegister, lc3BaseRegister,
                                       offset);
         std::bitset<16> binaryStrInstruction(strInstruction.generate());
 
@@ -274,7 +272,8 @@ TEST(Instructions, StrInstruction)
             Assembler::toBinaryString<3>(lc3BaseRegister);
         std::string lc3DestinationRegisterBin =
             Assembler::toBinaryString<3>(lc3SourceRegister);
-        std::string binaryOffset = Assembler::getBinaryOffsetToJumpTo<6>(offset);
+        std::string binaryOffset =
+            Assembler::getBinaryOffsetToJumpTo<6>(offset);
 
         std::string expectedResult = strInstruction.opcode() +
                                      lc3DestinationRegisterBin +
