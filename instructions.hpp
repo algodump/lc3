@@ -47,24 +47,37 @@ class Instruction {
 
 class AddInstruction : public Instruction {
   public:
-    // FIXME: parse the operands during the reading stage,
-    //        becaues vector<string> is to vague
-    AddInstruction(const std::vector<std::string>& operands);
+    AddInstruction(uint8_t destinationRegister, uint8_t source1Register,
+                   uint8_t source2RegisterOrImmediate, bool isImmediate);
+
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    std::vector<std::string> m_operands;
+    uint8_t m_destinationRegister;
+    uint8_t m_source1Register;
+    union {
+        uint8_t m_source2Register;
+        uint8_t m_immediateValue;
+    };
+    bool m_isImmediate;
 };
 
 class AndInstruction : public Instruction {
   public:
-    AndInstruction(const std::vector<std::string>& operands);
+    AndInstruction(uint8_t destinationRegister, uint8_t source1Register,
+                   uint8_t source2RegisterOrImmediate, bool isImmediate);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    std::vector<std::string> m_operands;
+    uint8_t m_destinationRegister;
+    uint8_t m_source1Register;
+    union {
+        uint8_t m_source2Register;
+        uint8_t m_immediateValue;
+    };
+    bool m_isImmediate;
 };
 
 class BrInstruction : public Instruction {

@@ -48,52 +48,72 @@ std::string Instruction::opcode() const { return ""; }
 
 Instruction::~Instruction() {}
 
-AddInstruction::AddInstruction(const std::vector<std::string>& operands)
-    : m_operands(operands)
+AddInstruction::AddInstruction(uint8_t destinationRegister,
+                               uint8_t source1Register,
+                               uint8_t source2RegisterOrImmediate,
+                               bool isImmediate)
+    : m_destinationRegister(destinationRegister),
+      m_source1Register(source1Register), m_isImmediate(isImmediate)
 {
+    if (isImmediate) {
+        m_immediateValue = source2RegisterOrImmediate;
+    }
+    else {
+        m_source2Register = source2RegisterOrImmediate;
+    }
 }
 
 uint16_t AddInstruction::generate()
 {
-    if (Assembler::isImmediate(m_operands[2])) {
+    if (m_isImmediate) {
         m_assembelyInstruction.set(opcode())
-            .set(getRegister(m_operands[0]))
-            .set(getRegister(m_operands[1]))
+            .set(convertRegisterToBinary(m_destinationRegister))
+            .set(convertRegisterToBinary(m_source1Register))
             .set('1')
-            .set(Assembler::getImmediate<5>(m_operands[2]));
+            .set(Assembler::toBinaryString<5>(m_immediateValue));
     }
     else {
         m_assembelyInstruction.set(opcode())
-            .set(getRegister(m_operands[0]))
-            .set(getRegister(m_operands[1]))
+            .set(convertRegisterToBinary(m_destinationRegister))
+            .set(convertRegisterToBinary(m_source1Register))
             .set("000")
-            .set(getRegister(m_operands[2]));
+            .set(convertRegisterToBinary(m_source2Register));
     }
     return m_assembelyInstruction.instruction();
 }
 
 std::string AddInstruction::opcode() const { return "0001"; }
 
-AndInstruction::AndInstruction(const std::vector<std::string>& operands)
-    : m_operands(operands)
+AndInstruction::AndInstruction(uint8_t destinationRegister,
+                               uint8_t source1Register,
+                               uint8_t source2RegisterOrImmediate,
+                               bool isImmediate)
+    : m_destinationRegister(destinationRegister),
+      m_source1Register(source1Register), m_isImmediate(isImmediate)
 {
+    if (isImmediate) {
+        m_immediateValue = source2RegisterOrImmediate;
+    }
+    else {
+        m_source2Register = source2RegisterOrImmediate;
+    }
 }
 
 uint16_t AndInstruction::generate()
 {
-    if (Assembler::isImmediate(m_operands[2])) {
+    if (m_isImmediate) {
         m_assembelyInstruction.set(opcode())
-            .set(getRegister(m_operands[0]))
-            .set(getRegister(m_operands[1]))
+            .set(convertRegisterToBinary(m_destinationRegister))
+            .set(convertRegisterToBinary(m_source1Register))
             .set('1')
-            .set(Assembler::getImmediate<5>(m_operands[2]));
+            .set(Assembler::toBinaryString<5>(m_immediateValue));
     }
     else {
         m_assembelyInstruction.set(opcode())
-            .set(getRegister(m_operands[0]))
-            .set(getRegister(m_operands[1]))
+            .set(convertRegisterToBinary(m_destinationRegister))
+            .set(convertRegisterToBinary(m_source1Register))
             .set("000")
-            .set(getRegister(m_operands[2]));
+            .set(convertRegisterToBinary(m_source2Register));
     }
     return m_assembelyInstruction.instruction();
 }
@@ -155,7 +175,10 @@ uint16_t RetInstruction::generate() { return JmpInsturction(7).generate(); }
 
 std::string RetInstruction::opcode() const { return "1100"; }
 
-JsrInstruction::JsrInstruction(const std::string& labelOrOffset) : m_labelOrOffset(labelOrOffset) {}
+JsrInstruction::JsrInstruction(const std::string& labelOrOffset)
+    : m_labelOrOffset(labelOrOffset)
+{
+}
 
 uint16_t JsrInstruction::generate()
 {
@@ -184,7 +207,7 @@ uint16_t JsrrInstruction::generate()
 std::string JsrrInstruction::opcode() const { return "0100"; }
 
 LdInstruction::LdInstruction(uint8_t destinationRegister,
-                                 const std::string& labelOrOffset)
+                             const std::string& labelOrOffset)
     : m_destinationRegister(destinationRegister), m_labelOrOffset(labelOrOffset)
 {
 }
@@ -201,7 +224,7 @@ uint16_t LdInstruction::generate()
 std::string LdInstruction::opcode() const { return "0010"; }
 
 LdiInsturction::LdiInsturction(uint8_t destinationRegister,
-                                 const std::string& label)
+                               const std::string& label)
     : m_destinationRegister(destinationRegister), m_labelOrOffset(label)
 {
 }
@@ -218,7 +241,8 @@ uint16_t LdiInsturction::generate()
 std::string LdiInsturction::opcode() const { return "1010"; }
 
 LdrInstruction::LdrInstruction(uint8_t destinationRegister,
-                               uint8_t baseRegister, const std::string& labelOrOffset)
+                               uint8_t baseRegister,
+                               const std::string& labelOrOffset)
     : m_destinationRegister(destinationRegister), m_baseRegister(baseRegister),
       m_labelOrOffset(labelOrOffset)
 {

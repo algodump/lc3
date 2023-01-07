@@ -22,6 +22,13 @@ uint8_t retrieveRegisterNumber(const std::string& lc3register)
     return std::numeric_limits<uint8_t>::max();
 }
 
+uint8_t retriveImmediateValue(const std::string& immediateValue)
+{
+    // TODO: check for overflow
+    assert(immediateValue[0] == '#');
+    return std::stoi(immediateValue.substr(1));
+}
+
 } // namespace
 
 Reader::Reader(const std::string& filename) : m_programName(filename) {}
@@ -94,11 +101,24 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             }
 
             // parse normal instructions
-            else if (name == "ADD") {
-                tokens.push_back(std::make_shared<AddInstruction>(operands));
-            }
-            else if (name == "AND") {
-                tokens.push_back(std::make_shared<AndInstruction>(operands));
+            else if (name == "ADD" || name == "AND") {
+                uint8_t destinationRegister =
+                    retrieveRegisterNumber(operands[0]);
+                uint8_t source1Register = retrieveRegisterNumber(operands[1]);
+                bool isImmediate = Assembler::isImmediate(operands[2]);
+                uint8_t source2RegisterOrImmediate =
+                    isImmediate ? retriveImmediateValue(operands[2])
+                                : retrieveRegisterNumber(operands[2]);
+                if (name == "ADD") {
+                    tokens.push_back(std::make_shared<AddInstruction>(
+                        destinationRegister, source1Register,
+                        source2RegisterOrImmediate, isImmediate));
+                }
+                else {
+                    tokens.push_back(std::make_shared<AndInstruction>(
+                        destinationRegister, source1Register,
+                        source2RegisterOrImmediate, isImmediate));
+                }
             }
             else if (name.starts_with("BR")) {
                 // This instruction comes in 8 falvours)

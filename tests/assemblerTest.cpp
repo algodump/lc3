@@ -20,49 +20,49 @@ void testAllTheRegisterFor(const std::string& offsetOrLabel)
         ASSERT_EQ(binaryInstruction.to_string(), expectedResult);
     }
 }
-} // namespace
 
-TEST(Instructions, AddInstruction)
+template<class InstructionType>
+void testForDestinationSource1Source2OrImmediate()
 {
-    std::vector<std::string> operands = {"R0", "R1", "R2"};
-    AddInstruction addInstructions(operands);
+    uint8_t destinationRegister = 0;
+    uint8_t source1Register = 1;
+    uint8_t source2Register = 2;
+    InstructionType addInstructions(destinationRegister, source1Register,
+                                   source2Register, false);
     std::bitset<16> binaryAddInstruction(addInstructions.generate());
 
     // NOTE: ideally retrive this binary register numbers form operands
     std::string expectedResult =
-        addInstructions.opcode() + "000" + "001" + "000" + "010";
+        addInstructions.opcode() +
+        Assembler::toBinaryString<3>(destinationRegister) +
+        Assembler::toBinaryString<3>(source1Register) + "000" +
+        Assembler::toBinaryString<3>(source2Register);
     ASSERT_EQ(binaryAddInstruction.to_string(), expectedResult);
 
-    std::vector<std::string> operandsWithImmediate = {"R0", "R1", "#7"};
-    AddInstruction addInstructionsWithImmediat(operandsWithImmediate);
+    uint8_t immediateValue = 16;
+    InstructionType addInstructionsWithImmediat(
+        destinationRegister, source1Register, immediateValue, true);
     std::bitset<16> binaryAddInstructionWithImmediate(
         addInstructionsWithImmediat.generate());
 
     std::string expectedResultWithImmediate =
-        addInstructionsWithImmediat.opcode() + "000" + "001" + "1" + "00111";
+        addInstructionsWithImmediat.opcode() +
+        Assembler::toBinaryString<3>(destinationRegister) +
+        Assembler::toBinaryString<3>(source1Register) + "1" +
+        Assembler::toBinaryString<5>(immediateValue);
     ASSERT_EQ(binaryAddInstructionWithImmediate.to_string(),
               expectedResultWithImmediate);
+}
+} // namespace
+
+TEST(Instructions, AddInstruction)
+{
+    testForDestinationSource1Source2OrImmediate<AddInstruction>();
 }
 
 TEST(Instructions, AndInstruction)
 {
-    std::vector<std::string> operands = {"R7", "R1", "R2"};
-    AndInstruction andInstruction(operands);
-    std::bitset<16> binaryAddInstruction(andInstruction.generate());
-
-    std::string expectedResult =
-        andInstruction.opcode() + "111" + "001" + "000" + "010";
-    ASSERT_EQ(binaryAddInstruction.to_string(), expectedResult);
-
-    std::vector<std::string> operandsWithImmediate = {"R7", "R1", "#16"};
-    AndInstruction andInstructionsWithImmediat(operandsWithImmediate);
-    std::bitset<16> binaryAndInstructionWithImmediate(
-        andInstructionsWithImmediat.generate());
-
-    std::string expectedResultWithImmediate =
-        andInstructionsWithImmediat.opcode() + "111" + "001" + "1" + "10000";
-    ASSERT_EQ(binaryAndInstructionWithImmediate.to_string(),
-              expectedResultWithImmediate);
+    testForDestinationSource1Source2OrImmediate<AddInstruction>();
 }
 
 TEST(Instructions, BrInstruction)

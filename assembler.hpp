@@ -25,15 +25,6 @@ class Assembler {
         return std::bitset<bitcount>(number).to_string();
     }
 
-    template <uint16_t N>
-    static std::string getImmediate(const std::string& immediateValue)
-    {
-        // TODO: check for overflow
-        assert(immediateValue[0] == '#');
-        return Assembler::toBinaryString<N>(
-            std::stoi(immediateValue.substr(1)));
-    }
-
     static bool isImmediate(const std::string& thirdOperand)
     {
         return thirdOperand.front() == '#';
@@ -43,7 +34,7 @@ class Assembler {
     static std::string getBinaryOffsetToJumpTo(const std::string& labelOrOffset)
     {
         if (isImmediate(labelOrOffset)) {
-            return getImmediate<bitcount>(labelOrOffset);
+            return toBinaryString<bitcount>(std::stoi(labelOrOffset.substr(1)));
         }
         return Assembler::toBinaryString<bitcount>(
             SymbolTable::the().get(labelOrOffset));
