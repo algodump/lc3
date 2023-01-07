@@ -14,7 +14,7 @@ std::string getRegister(const std::string& lc3register)
     return lc3register;
 }
 
-std::string getRegister(uint16_t lc3register)
+std::string convertRegisterToBinary(uint8_t lc3register)
 {
     return Assembler::toBinaryString<3>(lc3register);
 }
@@ -135,7 +135,7 @@ uint16_t BrInstruction::generate()
 
 std::string BrInstruction::opcode() const { return "0000"; }
 
-JmpInsturction::JmpInsturction(uint16_t baseRegister)
+JmpInsturction::JmpInsturction(uint8_t baseRegister)
     : m_baseRegister(baseRegister)
 {
 }
@@ -144,7 +144,7 @@ uint16_t JmpInsturction::generate()
 {
     m_assembelyInstruction.set(opcode())
         .set("000")
-        .set(getRegister(m_baseRegister))
+        .set(convertRegisterToBinary(m_baseRegister))
         .set("000000");
     return m_assembelyInstruction.instruction();
 }
@@ -166,7 +166,7 @@ uint16_t JsrInstruction::generate()
 
 std::string JsrInstruction::opcode() const { return "0100"; }
 
-JsrrInstruction::JsrrInstruction(uint16_t baseRgister)
+JsrrInstruction::JsrrInstruction(uint8_t baseRgister)
     : m_baseRegister(baseRgister)
 {
 }
@@ -176,14 +176,14 @@ uint16_t JsrrInstruction::generate()
     m_assembelyInstruction.set(opcode())
         .set('0')
         .set("00")
-        .set(getRegister(m_baseRegister))
+        .set(convertRegisterToBinary(m_baseRegister))
         .set("000000");
     return m_assembelyInstruction.instruction();
 }
 
 std::string JsrrInstruction::opcode() const { return "0100"; }
 
-LdInstruction::LdInstruction(uint16_t destinationRegister,
+LdInstruction::LdInstruction(uint8_t destinationRegister,
                                  const std::string& labelOrOffset)
     : m_destinationRegister(destinationRegister), m_labelOrOffset(labelOrOffset)
 {
@@ -193,14 +193,14 @@ uint16_t LdInstruction::generate()
 {
     auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
     m_assembelyInstruction.set(opcode())
-        .set(getRegister(m_destinationRegister))
+        .set(convertRegisterToBinary(m_destinationRegister))
         .set(offsetToJump);
     return m_assembelyInstruction.instruction();
 }
 
 std::string LdInstruction::opcode() const { return "0010"; }
 
-LdiInsturction::LdiInsturction(uint16_t destinationRegister,
+LdiInsturction::LdiInsturction(uint8_t destinationRegister,
                                  const std::string& label)
     : m_destinationRegister(destinationRegister), m_labelOrOffset(label)
 {
@@ -210,15 +210,15 @@ uint16_t LdiInsturction::generate()
 {
     auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
     m_assembelyInstruction.set(opcode())
-        .set(getRegister(m_destinationRegister))
+        .set(convertRegisterToBinary(m_destinationRegister))
         .set(offsetToJump);
     return m_assembelyInstruction.instruction();
 }
 
 std::string LdiInsturction::opcode() const { return "1010"; }
 
-LdrInstruction::LdrInstruction(uint16_t destinationRegister,
-                               uint16_t baseRegister, const std::string& labelOrOffset)
+LdrInstruction::LdrInstruction(uint8_t destinationRegister,
+                               uint8_t baseRegister, const std::string& labelOrOffset)
     : m_destinationRegister(destinationRegister), m_baseRegister(baseRegister),
       m_labelOrOffset(labelOrOffset)
 {
@@ -228,8 +228,8 @@ uint16_t LdrInstruction::generate()
 {
     auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<6>(m_labelOrOffset);
     m_assembelyInstruction.set(opcode())
-        .set(getRegister(m_destinationRegister))
-        .set(getRegister(m_baseRegister))
+        .set(convertRegisterToBinary(m_destinationRegister))
+        .set(convertRegisterToBinary(m_baseRegister))
         .set(offsetToJump);
     return m_assembelyInstruction.instruction();
 }

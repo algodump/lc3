@@ -81,12 +81,12 @@ class BrInstruction : public Instruction {
 
 class JmpInsturction : public Instruction {
   public:
-    JmpInsturction(uint16_t baseRegister);
+    JmpInsturction(uint8_t baseRegister);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    uint16_t m_baseRegister;
+    uint8_t m_baseRegister;
 };
 
 class RetInstruction : public Instruction {
@@ -108,46 +108,46 @@ class JsrInstruction : public Instruction {
 
 class JsrrInstruction : public Instruction {
   public:
-    JsrrInstruction(uint16_t baseRegister);
+    JsrrInstruction(uint8_t baseRegister);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    uint16_t m_baseRegister;
+    uint8_t m_baseRegister;
 };
 
 class LdInstruction : public Instruction {
   public:
-    LdInstruction(uint16_t destinationRegister, const std::string& m_labelOrOffset);
+    LdInstruction(uint8_t destinationRegister, const std::string& m_labelOrOffset);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    uint16_t m_destinationRegister;
+    uint8_t m_destinationRegister;
     std::string m_labelOrOffset;
 };
 
 class LdiInsturction : public Instruction {
   public:
-    LdiInsturction(uint16_t destinationRegister, const std::string& labelOrOffset);
+    LdiInsturction(uint8_t destinationRegister, const std::string& labelOrOffset);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    uint16_t m_destinationRegister;
+    uint8_t m_destinationRegister;
     std::string m_labelOrOffset;
 };
 
 class LdrInstruction : public Instruction {
   public:
-    LdrInstruction(uint16_t destinationRegister, uint16_t baseRegister,
+    LdrInstruction(uint8_t destinationRegister, uint8_t baseRegister,
                    const std::string& labelOrOffset);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
-    uint16_t m_destinationRegister;
-    uint16_t m_baseRegister;
+    uint8_t m_destinationRegister;
+    uint8_t m_baseRegister;
     std::string m_labelOrOffset;
 };
 

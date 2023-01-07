@@ -1,4 +1,5 @@
 #include "reader.hpp"
+#include "assembler.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -12,7 +13,17 @@ uint16_t to_int(const std::string& number)
     }
     return std::stoi(number);
 }
+
+uint8_t retrieveRegisterNumber(const std::string& lc3register)
+{
+    if (!lc3register.empty() && lc3register[0] == 'R') {
+        return lc3register[1] - '0';
+    }
+    return std::numeric_limits<uint8_t>::max();
+}
+
 } // namespace
+
 Reader::Reader(const std::string& filename) : m_programName(filename) {}
 
 InstructionToken Reader::parseInsturction(const std::string& insturction)
@@ -92,13 +103,13 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             else if (name.starts_with("BR")) {
                 // This instruction comes in 8 falvours)
                 // BRn BRzp BRz BRnp BRp BRnz BR BRnzp
-                auto conditionalCodes = name.substr(2);
-                auto labelToBranch = operands[0];
+                std::string conditionalCodes = name.substr(2);
+                std::string labelToBranch = operands[0];
                 tokens.push_back(
                     std::make_shared<BrInstruction>(conditionalCodes, labelToBranch));
             }
             else if (name == "JMP") {
-                auto baseRegister = operands[0][1] - '0';
+                uint8_t baseRegister = retrieveRegisterNumber(operands[0]);
                 tokens.push_back(
                     std::make_shared<JmpInsturction>(baseRegister));
             }
@@ -110,24 +121,24 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 tokens.push_back(std::make_shared<JsrInstruction>(labelOrImmediateOffset));
             }
             else if (name == "JSRR") {
-                auto baseRegister = operands[0][1] - '0';
+                uint8_t baseRegister = retrieveRegisterNumber(operands[0]);
                 tokens.push_back(
                     std::make_shared<JsrrInstruction>(baseRegister));
             }
             else if (name == "LD") {
-                auto destinationRegister = operands[0][1] - '0';
-                auto labelOrImmediateOffset = operands[1];
+                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+                std::string labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<LdInstruction>(
                     destinationRegister, labelOrImmediateOffset));
             } else if (name == "LDI") {
-                auto destinationRegister = operands[0][1] - '0';
-                auto labelOrImmediateOffset = operands[1];
+                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+                std::string labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<LdiInsturction>(
                     destinationRegister, labelOrImmediateOffset));
             } else if (name == "LDR") {
-                auto destinationRegister = operands[0][1] - '0';
-                auto baseRegister = operands[1][1] - '0';
-                auto labelOrImmediateOffset = operands[2];
+                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+                uint8_t baseRegister = retrieveRegisterNumber(operands[1]);
+                std::string labelOrImmediateOffset = operands[2];
                 tokens.push_back(std::make_shared<LdrInstruction>(
                     baseRegister, destinationRegister, labelOrImmediateOffset));
             }
