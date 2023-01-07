@@ -129,12 +129,25 @@ class LdInstruction : public Instruction {
 
 class LdiInsturction : public Instruction {
   public:
-    LdiInsturction(uint16_t destinationRegister, const std::string& m_labelOrOffset);
+    LdiInsturction(uint16_t destinationRegister, const std::string& labelOrOffset);
     uint16_t generate() override;
     std::string opcode() const override;
 
   private:
     uint16_t m_destinationRegister;
+    std::string m_labelOrOffset;
+};
+
+class LdrInstruction : public Instruction {
+  public:
+    LdrInstruction(uint16_t destinationRegister, uint16_t baseRegister,
+                   const std::string& labelOrOffset);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint16_t m_destinationRegister;
+    uint16_t m_baseRegister;
     std::string m_labelOrOffset;
 };
 

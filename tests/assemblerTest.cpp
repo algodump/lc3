@@ -175,6 +175,31 @@ TEST(Instructions, LdiInsturction)
     testAllTheRegisterFor<LdiInsturction>(offset);
 }
 
+TEST(Instructions, LdrInstruction)
+{
+    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
+    for (auto lc3BaseRegister : lc3registers) {
+        std::string offset = "#5";
+        uint8_t lc3DestinationRegister =
+            (lc3BaseRegister + 1) % lc3registers.size();
+        LdrInstruction ldrInstruction(lc3DestinationRegister,
+                                      lc3BaseRegister,
+                                      offset);
+        std::bitset<16> binaryLdrInstruction(ldrInstruction.generate());
+
+        std::string lc3BaseRegisterBin =
+            Assembler::toBinaryString<3>(lc3BaseRegister);
+        std::string lc3DestinationRegisterBin =
+            Assembler::toBinaryString<3>(lc3DestinationRegister);
+        std::string binaryOffset = Assembler::getBinaryOffsetToJumpTo<6>(offset);
+
+        std::string expectedResult = ldrInstruction.opcode() +
+                                     lc3DestinationRegisterBin +
+                                     lc3BaseRegisterBin + binaryOffset;
+        ASSERT_EQ(binaryLdrInstruction.to_string(), expectedResult);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);

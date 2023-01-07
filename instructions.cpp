@@ -217,6 +217,25 @@ uint16_t LdiInsturction::generate()
 
 std::string LdiInsturction::opcode() const { return "1010"; }
 
+LdrInstruction::LdrInstruction(uint16_t destinationRegister,
+                               uint16_t baseRegister, const std::string& labelOrOffset)
+    : m_destinationRegister(destinationRegister), m_baseRegister(baseRegister),
+      m_labelOrOffset(labelOrOffset)
+{
+}
+
+uint16_t LdrInstruction::generate()
+{
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<6>(m_labelOrOffset);
+    m_assembelyInstruction.set(opcode())
+        .set(getRegister(m_destinationRegister))
+        .set(getRegister(m_baseRegister))
+        .set(offsetToJump);
+    return m_assembelyInstruction.instruction();
+}
+
+std::string LdrInstruction::opcode() const { return "0110"; }
+
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
 uint16_t OriginDerective::generate() { return m_origin; }

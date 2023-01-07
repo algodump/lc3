@@ -124,6 +124,12 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 auto labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<LdiInsturction>(
                     destinationRegister, labelOrImmediateOffset));
+            } else if (name == "LDR") {
+                auto destinationRegister = operands[0][1] - '0';
+                auto baseRegister = operands[1][1] - '0';
+                auto labelOrImmediateOffset = operands[2];
+                tokens.push_back(std::make_shared<LdrInstruction>(
+                    baseRegister, destinationRegister, labelOrImmediateOffset));
             }
             offsetFromOrigin++;
         }
