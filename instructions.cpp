@@ -19,28 +19,6 @@ std::string getRegister(uint16_t lc3register)
     return Assembler::toBinaryString<3>(lc3register);
 }
 
-template <uint16_t N> std::string getImmediate(const std::string& immediateValue)
-{
-    // TODO: check for overflow
-    assert(immediateValue[0] == '#');
-    return Assembler::toBinaryString<N>(std::stoi(immediateValue.substr(1)));
-}
-
-bool isImmediate(const std::string& thirdOperand)
-{
-    return thirdOperand.front() == '#';
-}
-
-template <uint16_t bitcount> 
-std::string getBinaryOffsetToJumpTo(const std::string& labelOrOffset)
-{
-    if (isImmediate(labelOrOffset)) {
-        return getImmediate<bitcount>(labelOrOffset);
-    }
-    return Assembler::toBinaryString<bitcount>(
-        SymbolTable::the().get(labelOrOffset));
-}
-
 } // namespace
 
 InstructionBuilder::InstructionBuilder() : m_bitPointer(15) {}
@@ -77,12 +55,12 @@ AddInstruction::AddInstruction(const std::vector<std::string>& operands)
 
 uint16_t AddInstruction::generate()
 {
-    if (isImmediate(m_operands[2])) {
+    if (Assembler::isImmediate(m_operands[2])) {
         m_assembelyInstruction.set(opcode())
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
             .set('1')
-            .set(getImmediate<5>(m_operands[2]));
+            .set(Assembler::getImmediate<5>(m_operands[2]));
     }
     else {
         m_assembelyInstruction.set(opcode())
@@ -103,12 +81,12 @@ AndInstruction::AndInstruction(const std::vector<std::string>& operands)
 
 uint16_t AndInstruction::generate()
 {
-    if (isImmediate(m_operands[2])) {
+    if (Assembler::isImmediate(m_operands[2])) {
         m_assembelyInstruction.set(opcode())
             .set(getRegister(m_operands[0]))
             .set(getRegister(m_operands[1]))
             .set('1')
-            .set(getImmediate<5>(m_operands[2]));
+            .set(Assembler::getImmediate<5>(m_operands[2]));
     }
     else {
         m_assembelyInstruction.set(opcode())
@@ -181,7 +159,7 @@ JsrInstruction::JsrInstruction(const std::string& labelOrOffset) : m_labelOrOffs
 
 uint16_t JsrInstruction::generate()
 {
-    auto offsetToJump = getBinaryOffsetToJumpTo<11>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<11>(m_labelOrOffset);
     m_assembelyInstruction.set(opcode()).set('1').set(offsetToJump);
     return m_assembelyInstruction.instruction();
 }
@@ -213,7 +191,7 @@ LdInstruction::LdInstruction(uint16_t destinationRegister,
 
 uint16_t LdInstruction::generate()
 {
-    auto offsetToJump = getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
     m_assembelyInstruction.set(opcode())
         .set(getRegister(m_destinationRegister))
         .set(offsetToJump);
@@ -230,7 +208,7 @@ LdiInsturction::LdiInsturction(uint16_t destinationRegister,
 
 uint16_t LdiInsturction::generate()
 {
-    auto offsetToJump = getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
     m_assembelyInstruction.set(opcode())
         .set(getRegister(m_destinationRegister))
         .set(offsetToJump);

@@ -1,28 +1,26 @@
 #include <gtest/gtest.h>
 
-#include "../reader.hpp"
 #include "../assembler.hpp"
+#include "../reader.hpp"
+
 
 namespace {
-    template<class InstructionType> 
-    // TODO: Handle the case when offset is not retrieved from the label,
-    //       but it's given as it is.
-    void testAllTheRegisterFor(const std::string& label) {
-        std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
-        for (auto lc3Register : lc3registers) {
-            InstructionType instruction(lc3Register, label);
-            std::bitset<16> binaryInstruction(instruction.generate());
+template <class InstructionType>
+void testAllTheRegisterFor(const std::string& offsetOrLabel)
+{
+    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
+    for (auto lc3Register : lc3registers) {
+        InstructionType instruction(lc3Register, offsetOrLabel);
+        std::bitset<16> binaryInstruction(instruction.generate());
 
-            std::string labelOffset =
-                Assembler::toBinaryString(SymbolTable::the().get(label));
-            std::string lc3RegisterBin =
-                Assembler::toBinaryString<3>(lc3Register);
-            std::string expectedResult =
-                instruction.opcode() + lc3RegisterBin + labelOffset;
-            ASSERT_EQ(binaryInstruction.to_string(), expectedResult);
-        }
+        std::string offset = Assembler::getBinaryOffsetToJumpTo<9>(offsetOrLabel);
+        std::string lc3RegisterBin = Assembler::toBinaryString<3>(lc3Register);
+        std::string expectedResult =
+            instruction.opcode() + lc3RegisterBin + offset;
+        ASSERT_EQ(binaryInstruction.to_string(), expectedResult);
     }
 }
+} // namespace
 
 TEST(Instructions, AddInstruction)
 {
@@ -92,7 +90,8 @@ TEST(Instructions, BrInstruction)
         BrInstruction brInstruction(conditionalCodes, label);
         std::bitset<16> binaryLdInstruction(brInstruction.generate());
 
-        std::string labelOffset = Assembler::toBinaryString(SymbolTable::the().get(label));
+        std::string labelOffset =
+            Assembler::toBinaryString(SymbolTable::the().get(label));
         std::string expectedResult =
             brInstruction.opcode() + conditionalCodesResult + labelOffset;
         ASSERT_EQ(binaryLdInstruction.to_string(), expectedResult);
@@ -125,17 +124,21 @@ TEST(Instructions, JmpAndRetInsturctions)
 
 TEST(Instructions, JsrInstruction)
 {
+    auto testJsr = [](const std::string& labelOrOffset) {
+        JsrInstruction jsrInstruction(labelOrOffset);
+        std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
+        std::string offset = Assembler::getBinaryOffsetToJumpTo<11>(labelOrOffset);
+        std::string expectedResult =
+            jsrInstruction.opcode() + "1" + offset;
+        ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
+    };
+
     std::string label = "LABEL";
     SymbolTable::the().add(label, 4);
+    testJsr(label);
 
-    JsrInstruction jsrInstruction(label);
-    std::bitset<16> binaryJsrInstruction(jsrInstruction.generate());
-
-    // TODO: Handle the case when offset is not retrieved from the label,
-    //       but it's given as it is.
-    std::string labelOffset = Assembler::toBinaryString<11>(SymbolTable::the().get(label));
-    std::string expectedResult = jsrInstruction.opcode() + "1" + labelOffset;
-    ASSERT_EQ(binaryJsrInstruction.to_string(), expectedResult);
+    std::string offset = "#3131";
+    testJsr(offset);
 }
 
 TEST(Instructions, JsrrInstruction)
@@ -156,16 +159,20 @@ TEST(Instructions, LdInstruction)
 {
     std::string label = "LABEL";
     SymbolTable::the().add(label, 1);
-
     testAllTheRegisterFor<LdInstruction>(label);
+
+    std::string offset = "#3200";
+    testAllTheRegisterFor<LdInstruction>(offset);
 }
 
 TEST(Instructions, LdiInsturction)
 {
     std::string label = "WOW";
     SymbolTable::the().add(label, 42);
-
     testAllTheRegisterFor<LdiInsturction>(label);
+
+    std::string offset = "#6666";
+    testAllTheRegisterFor<LdiInsturction>(offset);
 }
 
 int main(int argc, char* argv[])
