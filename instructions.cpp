@@ -337,6 +337,22 @@ uint16_t RtiInstruction::generate() {
 
 std::string RtiInstruction::opcode() const {return "1000"; };
 
+TrapInstruction::TrapInstruction(uint8_t trapVector) : m_trapVector(trapVector)
+{
+}
+
+uint16_t TrapInstruction::generate()
+{
+    m_assembelyInstruction.set("1111").set("0000").set(
+        Assembler::toBinaryString<8>(m_trapVector));
+    return m_assembelyInstruction.instruction();
+}
+
+std::string TrapInstruction::opcode() const 
+{
+    return "1111";
+}
+
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
 uint16_t OriginDerective::generate() { return m_origin; }

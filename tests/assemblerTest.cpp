@@ -258,6 +258,16 @@ TEST(Instructions, RtiInstruction)
               "1000000000000000");
 }
 
+TEST(Instructions, TrapInstruction)
+{
+    uint8_t trapVector = 0x32;
+    TrapInstruction trapInstruction(trapVector);
+    std::string expectedResult = trapInstruction.opcode() + "0000" +
+                                 Assembler::toBinaryString<8>(trapVector);
+    ASSERT_EQ(Assembler::toBinaryString<16>(trapInstruction.generate()),
+              expectedResult);
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);

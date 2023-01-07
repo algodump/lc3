@@ -196,6 +196,9 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             }
             else if (name == "RTI") {
                 tokens.push_back(std::make_shared<RtiInstruction>());
+            } else if (name == "TRAP") {
+                uint8_t trapVector = to_int(operands[0]);
+                tokens.push_back(std::make_shared<TrapInstruction>(trapVector));
             }
 
             offsetFromOrigin++;

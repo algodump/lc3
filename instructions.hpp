@@ -217,6 +217,16 @@ class RtiInstruction : public Instruction {
     std::string opcode() const override;
 };
 
+class TrapInstruction : public Instruction {
+  public:
+    TrapInstruction(uint8_t trapVector);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint8_t m_trapVector;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);
