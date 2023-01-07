@@ -260,6 +260,57 @@ uint16_t LdrInstruction::generate()
 
 std::string LdrInstruction::opcode() const { return "0110"; }
 
+LeaInstruction::LeaInstruction(uint8_t destinationRegister,
+                               const std::string& labelOrOffset)
+    : m_destinationRegister(destinationRegister), m_labelOrOffset(labelOrOffset)
+{
+}
+
+uint16_t LeaInstruction::generate()
+{
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    m_assembelyInstruction.set(opcode())
+        .set(convertRegisterToBinary(m_destinationRegister))
+        .set(offsetToJump);
+    return m_assembelyInstruction.instruction();
+}
+
+std::string LeaInstruction::opcode() const { return "1110"; }
+
+StInstruction::StInstruction(uint8_t sourceRegister,
+                               const std::string& labelOrOffset)
+    : m_sourceRegister(sourceRegister), m_labelOrOffset(labelOrOffset)
+{
+}
+
+uint16_t StInstruction::generate()
+{
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    m_assembelyInstruction.set(opcode())
+        .set(convertRegisterToBinary(m_sourceRegister))
+        .set(offsetToJump);
+    return m_assembelyInstruction.instruction();
+}
+
+std::string StInstruction::opcode() const { return "0011"; }
+
+StiInstruction::StiInstruction(uint8_t sourceRegister,
+                               const std::string& labelOrOffset)
+    : m_sourceRegister(sourceRegister), m_labelOrOffset(labelOrOffset)
+{
+}
+
+uint16_t StiInstruction::generate()
+{
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    m_assembelyInstruction.set(opcode())
+        .set(convertRegisterToBinary(m_sourceRegister))
+        .set(offsetToJump);
+    return m_assembelyInstruction.instruction();
+}
+
+std::string StiInstruction::opcode() const { return "1011"; }
+
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
 uint16_t OriginDerective::generate() { return m_origin; }

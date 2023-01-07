@@ -31,7 +31,6 @@ void testForDestinationSource1Source2OrImmediate()
                                    source2Register, false);
     std::bitset<16> binaryAddInstruction(addInstructions.generate());
 
-    // NOTE: ideally retrive this binary register numbers form operands
     std::string expectedResult =
         addInstructions.opcode() +
         Assembler::toBinaryString<3>(destinationRegister) +
@@ -173,6 +172,36 @@ TEST(Instructions, LdiInsturction)
 
     std::string offset = "#6666";
     testAllTheRegisterFor<LdiInsturction>(offset);
+}
+
+TEST(Instructions, LeaInstruction)
+{
+    std::string label = "lea";
+    SymbolTable::the().add(label, 24);
+    testAllTheRegisterFor<LeaInstruction>(label);
+
+    std::string offset = "#3333";
+    testAllTheRegisterFor<LeaInstruction>(offset);
+}
+
+TEST(Instructions, StInstruction)
+{
+    std::string label = "st";
+    SymbolTable::the().add(label, 11);
+    testAllTheRegisterFor<StInstruction>(label);
+
+    std::string offset = "#4444";
+    testAllTheRegisterFor<StInstruction>(offset);
+}
+
+TEST(Instructions, StiInstruction)
+{
+    std::string label = "sti";
+    SymbolTable::the().add(label, 9);
+    testAllTheRegisterFor<StiInstruction>(label);
+
+    std::string offset = "#5555";
+    testAllTheRegisterFor<StiInstruction>(offset);
 }
 
 TEST(Instructions, LdrInstruction)

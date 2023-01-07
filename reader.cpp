@@ -162,6 +162,28 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 tokens.push_back(std::make_shared<LdrInstruction>(
                     baseRegister, destinationRegister, labelOrImmediateOffset));
             }
+            else if (name == "LEA") {
+                uint8_t destinationRegister =
+                    retrieveRegisterNumber(operands[0]);
+                std::string labelOrImmediateOffset = operands[1];
+                tokens.push_back(std::make_shared<LeaInstruction>(
+                    destinationRegister, labelOrImmediateOffset));
+            }
+            else if (name == "ST") {
+                uint8_t sourceRegister =
+                    retrieveRegisterNumber(operands[0]);
+                std::string labelOrImmediateOffset = operands[1];
+                tokens.push_back(std::make_shared<StInstruction>(
+                    sourceRegister, labelOrImmediateOffset));
+            }
+            else if (name == "STI") {
+                uint8_t sourceRegister =
+                    retrieveRegisterNumber(operands[0]);
+                std::string labelOrImmediateOffset = operands[1];
+                tokens.push_back(std::make_shared<StiInstruction>(
+                    sourceRegister, labelOrImmediateOffset));
+            }
+
             offsetFromOrigin++;
         }
     }

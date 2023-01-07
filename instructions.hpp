@@ -164,6 +164,40 @@ class LdrInstruction : public Instruction {
     std::string m_labelOrOffset;
 };
 
+// TODO: make this class template
+class LeaInstruction : public Instruction {
+  public:
+    LeaInstruction(uint8_t destinationRegister, const std::string& m_labelOrOffset);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint8_t m_destinationRegister;
+    std::string m_labelOrOffset;
+};
+
+class StInstruction : public Instruction {
+  public:
+    StInstruction(uint8_t sourceRegister, const std::string& m_labelOrOffset);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint8_t m_sourceRegister;
+    std::string m_labelOrOffset;
+};
+
+class StiInstruction : public Instruction {
+  public:
+    StiInstruction(uint8_t sourceRegister, const std::string& m_labelOrOffset);
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint8_t m_sourceRegister;
+    std::string m_labelOrOffset;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);
