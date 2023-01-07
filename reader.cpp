@@ -182,6 +182,10 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 std::string labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<StiInstruction>(
                     sourceRegister, labelOrImmediateOffset));
+            } else if (name == "NOT") {
+                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+                uint8_t sourceRigistere = retrieveRegisterNumber(operands[1]);
+                tokens.push_back(std::make_shared<NotInstruction>(destinationRegister, sourceRigistere));
             }
 
             offsetFromOrigin++;

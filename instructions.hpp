@@ -198,6 +198,18 @@ class StiInstruction : public Instruction {
     std::string m_labelOrOffset;
 };
 
+class NotInstruction : public Instruction {
+  public:
+    NotInstruction(uint8_t destinationRegister, uint8_t sourceRegister);
+
+    uint16_t generate() override;
+    std::string opcode() const override;
+
+  private:
+    uint8_t m_destinationRegister;
+    uint8_t m_sourceRegister;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);

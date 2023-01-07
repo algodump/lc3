@@ -311,6 +311,24 @@ uint16_t StiInstruction::generate()
 
 std::string StiInstruction::opcode() const { return "1011"; }
 
+NotInstruction::NotInstruction(uint8_t destinationRegister,
+                               uint8_t sourceRegister)
+    : m_destinationRegister(destinationRegister),
+      m_sourceRegister(sourceRegister)
+{
+}
+
+uint16_t NotInstruction::generate() 
+{
+    m_assembelyInstruction.set(opcode())
+        .set(convertRegisterToBinary(m_destinationRegister))
+        .set(convertRegisterToBinary(m_sourceRegister))
+        .set("111111");
+    return m_assembelyInstruction.instruction();
+}
+
+std::string NotInstruction::opcode() const { return "1001"; }
+
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
 uint16_t OriginDerective::generate() { return m_origin; }

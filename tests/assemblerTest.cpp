@@ -229,6 +229,28 @@ TEST(Instructions, LdrInstruction)
     }
 }
 
+TEST(Instructions, NotInstruction)
+{
+    std::vector<uint8_t> lc3registers{0, 1, 2, 3, 4, 5, 6, 7};
+    for (auto lc3sourceRegister : lc3registers) {
+        uint8_t lc3DestinationRegister =
+            (lc3sourceRegister + 1) % lc3registers.size();
+        NotInstruction ldrInstruction(lc3DestinationRegister,
+                                      lc3sourceRegister);
+        std::bitset<16> binaryLdrInstruction(ldrInstruction.generate());
+
+        std::string lc3BaseRegisterBin =
+            Assembler::toBinaryString<3>(lc3sourceRegister);
+        std::string lc3DestinationRegisterBin =
+            Assembler::toBinaryString<3>(lc3DestinationRegister);
+
+        std::string expectedResult = ldrInstruction.opcode() +
+                                     lc3DestinationRegisterBin +
+                                     lc3BaseRegisterBin + "111111";
+        ASSERT_EQ(binaryLdrInstruction.to_string(), expectedResult);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
