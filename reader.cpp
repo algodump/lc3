@@ -125,8 +125,8 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 // BRn BRzp BRz BRnp BRp BRnz BR BRnzp
                 std::string conditionalCodes = name.substr(2);
                 std::string labelToBranch = operands[0];
-                tokens.push_back(
-                    std::make_shared<BrInstruction>(conditionalCodes, labelToBranch));
+                tokens.push_back(std::make_shared<BrInstruction>(
+                    conditionalCodes, labelToBranch));
             }
             else if (name == "JMP") {
                 uint8_t baseRegister = retrieveRegisterNumber(operands[0]);
@@ -138,7 +138,8 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
             }
             else if (name == "JSR") {
                 auto labelOrImmediateOffset = operands[0];
-                tokens.push_back(std::make_shared<JsrInstruction>(labelOrImmediateOffset));
+                tokens.push_back(
+                    std::make_shared<JsrInstruction>(labelOrImmediateOffset));
             }
             else if (name == "JSRR") {
                 uint8_t baseRegister = retrieveRegisterNumber(operands[0]);
@@ -146,17 +147,22 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                     std::make_shared<JsrrInstruction>(baseRegister));
             }
             else if (name == "LD") {
-                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+                uint8_t destinationRegister =
+                    retrieveRegisterNumber(operands[0]);
                 std::string labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<LdInstruction>(
                     destinationRegister, labelOrImmediateOffset));
-            } else if (name == "LDI") {
-                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+            }
+            else if (name == "LDI") {
+                uint8_t destinationRegister =
+                    retrieveRegisterNumber(operands[0]);
                 std::string labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<LdiInsturction>(
                     destinationRegister, labelOrImmediateOffset));
-            } else if (name == "LDR") {
-                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+            }
+            else if (name == "LDR") {
+                uint8_t destinationRegister =
+                    retrieveRegisterNumber(operands[0]);
                 uint8_t baseRegister = retrieveRegisterNumber(operands[1]);
                 std::string labelOrImmediateOffset = operands[2];
                 tokens.push_back(std::make_shared<LdrInstruction>(
@@ -170,22 +176,26 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                     destinationRegister, labelOrImmediateOffset));
             }
             else if (name == "ST") {
-                uint8_t sourceRegister =
-                    retrieveRegisterNumber(operands[0]);
+                uint8_t sourceRegister = retrieveRegisterNumber(operands[0]);
                 std::string labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<StInstruction>(
                     sourceRegister, labelOrImmediateOffset));
             }
             else if (name == "STI") {
-                uint8_t sourceRegister =
-                    retrieveRegisterNumber(operands[0]);
+                uint8_t sourceRegister = retrieveRegisterNumber(operands[0]);
                 std::string labelOrImmediateOffset = operands[1];
                 tokens.push_back(std::make_shared<StiInstruction>(
                     sourceRegister, labelOrImmediateOffset));
-            } else if (name == "NOT") {
-                uint8_t destinationRegister = retrieveRegisterNumber(operands[0]);
+            }
+            else if (name == "NOT") {
+                uint8_t destinationRegister =
+                    retrieveRegisterNumber(operands[0]);
                 uint8_t sourceRigistere = retrieveRegisterNumber(operands[1]);
-                tokens.push_back(std::make_shared<NotInstruction>(destinationRegister, sourceRigistere));
+                tokens.push_back(std::make_shared<NotInstruction>(
+                    destinationRegister, sourceRigistere));
+            }
+            else if (name == "RTI") {
+                tokens.push_back(std::make_shared<RtiInstruction>());
             }
 
             offsetFromOrigin++;

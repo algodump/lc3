@@ -6,6 +6,8 @@ LD R3, LABEL
 LDI R2, HERE
 LDR R1, R2, #5
 
+RTI
+
 AND R7, R2, R1
 AND R0, R7, #7
 

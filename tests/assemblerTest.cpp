@@ -251,6 +251,13 @@ TEST(Instructions, NotInstruction)
     }
 }
 
+TEST(Instructions, RtiInstruction)
+{
+    RtiInstruction rtiInstruction;
+    ASSERT_EQ(Assembler::toBinaryString<16>(rtiInstruction.generate()),
+              "1000000000000000");
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);

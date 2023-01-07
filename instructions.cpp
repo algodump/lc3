@@ -329,6 +329,14 @@ uint16_t NotInstruction::generate()
 
 std::string NotInstruction::opcode() const { return "1001"; }
 
+uint16_t RtiInstruction::generate() {
+        m_assembelyInstruction.set(opcode())
+        .set("000000000000");
+    return m_assembelyInstruction.instruction();
+}
+
+std::string RtiInstruction::opcode() const {return "1000"; };
+
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
 uint16_t OriginDerective::generate() { return m_origin; }

@@ -210,6 +210,13 @@ class NotInstruction : public Instruction {
     uint8_t m_sourceRegister;
 };
 
+class RtiInstruction : public Instruction {
+  public:
+    RtiInstruction() = default;
+    uint16_t generate() override;
+    std::string opcode() const override;
+};
+
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);
