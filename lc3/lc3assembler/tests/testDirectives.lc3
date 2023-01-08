@@ -1,6 +1,0 @@
-; this is comment
-.ORIG 0x3000
-.STRINGZ "HELLO WORLD" ; ""
-.BLKW 1
-.FILL 0xADDE
-.END
