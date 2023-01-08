@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(lc3asm)
 
-add_subdirectory(googletest)
+add_subdirectory(../../googletest build)
 
 include_directories(googletest/include)
 list(APPEND testDependencies "../reader.cpp" "../instructions.cpp" "../assembler.cpp")
