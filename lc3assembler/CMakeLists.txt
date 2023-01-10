@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.12)
 project(lc3asm VERSION 0.1.0)
 
-set (CMAKE_CXX_FLAGS "/std:c++latest /EHsc" )
+set(gtest_force_shared_crt on)
+set(CMAKE_CXX_FLAGS "/std:c++latest /EHsc")
 
 add_executable(lc3asm main.cpp reader.cpp instructions.cpp assembler.cpp)
-
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
 add_subdirectory(tests)
+
+include(CTest)
+add_test(AssemblerTest ..\\build\\tests\\assemblerTest.exe)
+add_test(ReaderTest ..\\build\\tests\\readerTest.exe)

@@ -16,7 +16,7 @@ bool isOriginAndEndPresent(
 
 TEST(Reader, TestAssemlbyDirectives)
 {
-    Reader r("..\\..\\..\\tests\\testDirectives.lc3");
+    Reader r("..\\..\\..\\lc3assembler\\tests\\testDirectives.lc3");
 
     auto parsedInstructions = r.readFile();
 
@@ -31,7 +31,7 @@ TEST(Reader, TestAssemlbyDirectives)
 TEST(Reader, TestInstructions)
 {
     // FIXME: fix pathes
-    Reader r("..\\..\\..\\tests\\testInstructions.lc3");
+    Reader r("..\\..\\..\\lc3assembler\\tests\\testInstructions.lc3");
 
     auto parsedInstructions = r.readFile();
 
