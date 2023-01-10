@@ -1,0 +1,12 @@
+; this is comment
+.ORIG 0x3000
+
+LD R0, VALUE1
+LD R1, VALUE2
+
+ADD R2, R0, R1
+
+VALUE1 .FILL 42
+VALUE2 .FILL 28
+
+.END

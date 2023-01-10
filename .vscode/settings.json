@@ -81,6 +81,6 @@
     },
     "cmake.configureOnOpen": false,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "cmake.sourceDirectory": "${workspaceFolder}/lc3assembler",
+    "cmake.sourceDirectory": "${workspaceFolder}",
     "cmake.buildDirectory": "${workspaceFolder}/build"
 }
