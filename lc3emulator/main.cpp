@@ -2,14 +2,19 @@
 
 #include "CPU.hpp"
 
-int main()
+int main(int argc, char* argv[])
 {
-    std::string file_to_run = "C:\\Users\\name\\Desktop\\Code\\lc3\\out.l3_bin";
+    if (argc < 2) {
+        std::cout << "usage: lc3emulator filename" << std::endl;
+        return -1;
+    }
+
+    std::string fileToRun = argv[1];
     CPU cpu;
-    if (cpu.load(file_to_run)) {
+    if (cpu.load(fileToRun)) {
         cpu.emulate();
     }
     else {
-        std::cout << "ERROR: Couldn't load file: " << file_to_run << std::endl;
+        std::cout << "ERROR: Couldn't load file: " << fileToRun << std::endl;
     }
 }

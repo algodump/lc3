@@ -4,12 +4,19 @@
 #include "reader.hpp"
 #include <filesystem>
 
-int main() {
-    Reader reader("..\\lc3assembler\\tests\\addTwoValues.lc3");
+int main(int argc, char* argv[]) {
+    if (argc < 2) {
+        std::cout << "usage: lc3assembler <filename> " << std::endl;
+        return 1;
+    }
+
+    std::string assemblyFile = argv[1];
+    Reader reader(assemblyFile);
     auto instructions = reader.readFile();
 
     Assembler assembler(instructions);
-    Writer writer("..\\out.l3_bin");
+    std::string outFileName = "out.lc3";
+    Writer writer(outFileName);
 
     assembler.gnenerate(writer);
     return 0;

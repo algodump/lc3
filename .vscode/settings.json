@@ -82,5 +82,12 @@
     "cmake.configureOnOpen": false,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "cmake.sourceDirectory": "${workspaceFolder}",
-    "cmake.buildDirectory": "${workspaceFolder}/build"
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.debugConfig": {
+        // FOR: lc3assembly
+        // "args": ["${workspaceFolder}/lc3assembler/tests/playground.lc3"]
+
+        // FOR: lc3emulator
+        "args": ["${workspaceFolder}/out.lc3"]
+    }
 }
