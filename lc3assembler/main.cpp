@@ -7,6 +7,8 @@
 // TODO: check for overflows
 // TODO: discard unkown symbols
 // TODO: make warrning about using out of range values
+// TODO: add suport for negative numbers
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         std::cout << "usage: lc3assembler <filename> " << std::endl;
