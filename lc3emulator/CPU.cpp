@@ -7,11 +7,11 @@
 
 
 namespace {
-uint16_t retrieveBits(uint16_t insturction, uint8_t start, uint8_t size)
+int16_t retrieveBits(uint16_t insturction, uint8_t start, uint8_t size)
 {
     assert(start <= 15 && start >= 0);
     uint16_t mask = (1 << size) - 1;
-    uint16_t res = (insturction >> (start - size + 1)) & mask;
+    int16_t res = (insturction >> (start - size + 1)) & mask;
     return res;
 }
 
@@ -26,9 +26,23 @@ uint16_t getSourceBaseRegister(uint16_t insturction)
 }
 } // namespace
 
+CPU::CPU() : m_conditionalCodes{0, 0, 0} {}
+
 InsturctionOpCode CPU::getOpCode(uint16_t instruction) const
 {
     return static_cast<InsturctionOpCode>(retrieveBits(instruction, 15, 4));
+}
+
+void CPU::setconDitionalCodes(uint8_t destinationRegister)
+{
+    auto destinationRegisterValue = m_memory[destinationRegister];
+    if (destinationRegisterValue < 0) {
+        m_conditionalCodes.n = 1;
+    } else if (destinationRegisterValue == 0) {
+        m_conditionalCodes.z = 1;
+    } else {
+        m_conditionalCodes.p = 1;
+    }
 }
 
 bool CPU::load(const std::string& fileToRun)
@@ -81,6 +95,13 @@ bool CPU::emulate()
                 m_registers[destinationRegister] =
                     m_registers[sourceRegister] + m_registers[secondSource];
             }
+            break;
+        }
+        case InsturctionOpCode::LD: {
+            uint8_t destinationRegister = getDestinationRegister(instruction);
+            int16_t offset = retrieveBits(instruction, 8, 9);
+            m_registers[destinationRegister] = m_memory[m_pc + offset];
+            setconDitionalCodes(destinationRegister);
             break;
         }
         }

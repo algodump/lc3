@@ -33,13 +33,14 @@ class Instruction {
 
 class CPU {
   public:
-    CPU() = default;
+    CPU();
     bool load(const std::string& fileToRun);
     bool emulate();
 
   private:
     void dumpMemory(uint16_t start, uint16_t size);
     InsturctionOpCode getOpCode(uint16_t instruction) const;
+    void setconDitionalCodes(uint8_t destinationRegister);
 
   private:
     static constexpr uint16_t MEMORY_CAPACITY =
@@ -50,4 +51,10 @@ class CPU {
     std::array<uint16_t, MEMORY_CAPACITY> m_memory;
     std::array<uint8_t, NUMBER_OF_REGISTERS> m_registers;
     uint16_t m_pc;
+
+    struct ConditionalCode {
+      uint8_t n;
+      uint8_t z;
+      uint8_t p;
+    } m_conditionalCodes;
 };
