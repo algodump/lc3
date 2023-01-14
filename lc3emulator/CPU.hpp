@@ -3,7 +3,7 @@
 #include <array>
 #include <string>
 
-enum class InsturctionOpCode : uint8_t {
+enum class InstructionOpCode : uint8_t {
     BR = 0b0000,
     ADD = 0b0001,
     LD = 0b0010,
@@ -48,7 +48,7 @@ class CPU {
 
   private:
     void dumpMemory(uint16_t start, uint16_t size);
-    InsturctionOpCode getOpCode(uint16_t instruction) const;
+    InstructionOpCode getOpCode(uint16_t instruction) const;
     void setconDitionalCodes(uint8_t destinationRegister);
 
   private:
@@ -56,9 +56,9 @@ class CPU {
     Registers m_registers;
     uint16_t m_pc;
     struct ConditionalCode {
-        uint8_t n;
-        uint8_t z;
-        uint8_t p;
+        uint8_t N;
+        uint8_t Z;
+        uint8_t P;
     } m_conditionalCodes;
     
     friend class CPUTests;
