@@ -36,7 +36,7 @@ class InstructionBuilder {
 
 class Instruction {
   public:
-    virtual uint16_t generate() = 0;
+    virtual uint16_t generate(uint16_t currentPC) = 0;
     virtual std::string opcode() const;
 
     virtual ~Instruction();
@@ -50,7 +50,7 @@ class AddInstruction : public Instruction {
     AddInstruction(uint8_t destinationRegister, uint8_t source1Register,
                    uint8_t source2RegisterOrImmediate, bool isImmediate);
 
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -67,7 +67,7 @@ class AndInstruction : public Instruction {
   public:
     AndInstruction(uint8_t destinationRegister, uint8_t source1Register,
                    uint8_t source2RegisterOrImmediate, bool isImmediate);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -84,7 +84,7 @@ class BrInstruction : public Instruction {
   public:
     BrInstruction(const std::string& conditionalCodes,
                   const std::string& label);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -95,7 +95,7 @@ class BrInstruction : public Instruction {
 class JmpInsturction : public Instruction {
   public:
     JmpInsturction(uint8_t baseRegister);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -105,14 +105,14 @@ class JmpInsturction : public Instruction {
 class RetInstruction : public Instruction {
   public:
     RetInstruction() = default;
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 };
 
 class JsrInstruction : public Instruction {
   public:
     JsrInstruction(const std::string& labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -122,7 +122,7 @@ class JsrInstruction : public Instruction {
 class JsrrInstruction : public Instruction {
   public:
     JsrrInstruction(uint8_t baseRegister);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -132,7 +132,7 @@ class JsrrInstruction : public Instruction {
 class LdInstruction : public Instruction {
   public:
     LdInstruction(uint8_t destinationRegister, const std::string& m_labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -143,7 +143,7 @@ class LdInstruction : public Instruction {
 class LdiInsturction : public Instruction {
   public:
     LdiInsturction(uint8_t destinationRegister, const std::string& labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -155,7 +155,7 @@ class LdrInstruction : public Instruction {
   public:
     LdrInstruction(uint8_t destinationRegister, uint8_t baseRegister,
                    const std::string& labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -168,7 +168,7 @@ class LdrInstruction : public Instruction {
 class LeaInstruction : public Instruction {
   public:
     LeaInstruction(uint8_t destinationRegister, const std::string& m_labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -179,7 +179,7 @@ class LeaInstruction : public Instruction {
 class StInstruction : public Instruction {
   public:
     StInstruction(uint8_t sourceRegister, const std::string& m_labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -190,7 +190,7 @@ class StInstruction : public Instruction {
 class StiInstruction : public Instruction {
   public:
     StiInstruction(uint8_t sourceRegister, const std::string& m_labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -202,7 +202,7 @@ class NotInstruction : public Instruction {
   public:
     NotInstruction(uint8_t destinationRegister, uint8_t sourceRegister);
 
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -213,14 +213,14 @@ class NotInstruction : public Instruction {
 class RtiInstruction : public Instruction {
   public:
     RtiInstruction() = default;
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 };
 
 class TrapInstruction : public Instruction {
   public:
     TrapInstruction(uint8_t trapVector);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -231,7 +231,7 @@ class StrInstruction : public Instruction {
   public:
     StrInstruction(uint8_t sourceRegister, uint8_t baseRegister,
                    const std::string& labelOrOffset);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
   private:
@@ -243,7 +243,7 @@ class StrInstruction : public Instruction {
 class OriginDerective : public Instruction {
   public:
     OriginDerective(uint16_t origin);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
 
   private:
     uint16_t m_origin;
@@ -252,7 +252,7 @@ class OriginDerective : public Instruction {
 class FillDerective : public Instruction {
   public:
     FillDerective(uint16_t value);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
 
   private:
     uint16_t m_value;
@@ -261,7 +261,7 @@ class FillDerective : public Instruction {
 class BlkwDerective : public Instruction {
   public:
     BlkwDerective(uint16_t numberOfMemoryLocations);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
 
     uint16_t getNumberOfMemoryLocations() const;
 
@@ -272,7 +272,7 @@ class BlkwDerective : public Instruction {
 class StringDerective : public Instruction {
   public:
     StringDerective(const std::string& str);
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
 
     std::string getStringToWrite() const;
 
@@ -283,5 +283,5 @@ class StringDerective : public Instruction {
 class EndDerective : public Instruction {
   public:
     EndDerective() = default;
-    uint16_t generate() override;
+    uint16_t generate(uint16_t currentPC) override;
 };

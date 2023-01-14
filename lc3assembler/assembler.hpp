@@ -30,14 +30,15 @@ class Assembler {
         return thirdOperand.front() == '#';
     }
 
-    template <uint16_t bitcount>
-    static std::string getBinaryOffsetToJumpTo(const std::string& labelOrOffset)
+    template <uint16_t bitcount = 9>
+    static std::string getBinaryOffsetToJumpTo(const std::string& labelOrOffset, uint16_t currentPC)
     {
         if (isImmediate(labelOrOffset)) {
             return toBinaryString<bitcount>(std::stoi(labelOrOffset.substr(1)));
         }
-        return Assembler::toBinaryString<bitcount>(
-            SymbolTable::the().get(labelOrOffset));
+        auto labelLocation = SymbolTable::the().get(labelOrOffset);
+        uint16_t offset = labelLocation - currentPC;
+        return Assembler::toBinaryString<bitcount>(offset);
     }
 
   private:

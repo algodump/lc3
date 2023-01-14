@@ -29,6 +29,8 @@ void Assembler::gnenerate(Writer& writer)
     assert(dynamic_cast<OriginDerective*>((m_instructions.front()).get()));
     assert(dynamic_cast<EndDerective*>((m_instructions.back()).get()));
 
+    uint16_t pc = 0;
+
     for (auto& instruction : m_instructions) {
         if (auto blkwDerective =
                 dynamic_cast<BlkwDerective*>(instruction.get());
@@ -51,8 +53,9 @@ void Assembler::gnenerate(Writer& writer)
             continue;
         }
         else {
-            auto binaryInstruction = instruction->generate();
+            auto binaryInstruction = instruction->generate(pc);
             writer.write(binaryInstruction);
+            pc++;
         }
     }
 }

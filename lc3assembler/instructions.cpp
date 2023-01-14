@@ -63,7 +63,7 @@ AddInstruction::AddInstruction(uint8_t destinationRegister,
     }
 }
 
-uint16_t AddInstruction::generate()
+uint16_t AddInstruction::generate(uint16_t)
 {
     if (m_isImmediate) {
         m_assembelyInstruction.set(opcode())
@@ -99,7 +99,7 @@ AndInstruction::AndInstruction(uint8_t destinationRegister,
     }
 }
 
-uint16_t AndInstruction::generate()
+uint16_t AndInstruction::generate(uint16_t)
 {
     if (m_isImmediate) {
         m_assembelyInstruction.set(opcode())
@@ -126,10 +126,10 @@ BrInstruction::BrInstruction(const std::string& conditionalCodes,
 {
 }
 
-uint16_t BrInstruction::generate()
+uint16_t BrInstruction::generate(uint16_t currentPC)
 {
     auto labelOffset =
-        Assembler::toBinaryString(SymbolTable::the().get(m_label));
+        Assembler::getBinaryOffsetToJumpTo(m_label, currentPC);
     // NOTE: BRnzp and BR are the same, so if either all codes are set or none,
     //       reuslt must be the same
     if (m_conditionalCodes.empty() || m_conditionalCodes.size() == 3) {
@@ -160,7 +160,7 @@ JmpInsturction::JmpInsturction(uint8_t baseRegister)
 {
 }
 
-uint16_t JmpInsturction::generate()
+uint16_t JmpInsturction::generate(uint16_t)
 {
     m_assembelyInstruction.set(opcode())
         .set("000")
@@ -171,7 +171,7 @@ uint16_t JmpInsturction::generate()
 
 std::string JmpInsturction::opcode() const { return "1100"; }
 
-uint16_t RetInstruction::generate() { return JmpInsturction(7).generate(); }
+uint16_t RetInstruction::generate(uint16_t currentPC) { return JmpInsturction(7).generate(currentPC); }
 
 std::string RetInstruction::opcode() const { return "1100"; }
 
@@ -180,9 +180,9 @@ JsrInstruction::JsrInstruction(const std::string& labelOrOffset)
 {
 }
 
-uint16_t JsrInstruction::generate()
+uint16_t JsrInstruction::generate(uint16_t currentPC)
 {
-    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<11>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<11>(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode()).set('1').set(offsetToJump);
     return m_assembelyInstruction.instruction();
 }
@@ -194,7 +194,7 @@ JsrrInstruction::JsrrInstruction(uint8_t baseRgister)
 {
 }
 
-uint16_t JsrrInstruction::generate()
+uint16_t JsrrInstruction::generate(uint16_t currentPC)
 {
     m_assembelyInstruction.set(opcode())
         .set('0')
@@ -212,9 +212,9 @@ LdInstruction::LdInstruction(uint8_t destinationRegister,
 {
 }
 
-uint16_t LdInstruction::generate()
+uint16_t LdInstruction::generate(uint16_t currentPC)
 {
-    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_destinationRegister))
         .set(offsetToJump);
@@ -229,9 +229,9 @@ LdiInsturction::LdiInsturction(uint8_t destinationRegister,
 {
 }
 
-uint16_t LdiInsturction::generate()
+uint16_t LdiInsturction::generate(uint16_t currentPC)
 {
-    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_destinationRegister))
         .set(offsetToJump);
@@ -248,9 +248,9 @@ LdrInstruction::LdrInstruction(uint8_t destinationRegister,
 {
 }
 
-uint16_t LdrInstruction::generate()
+uint16_t LdrInstruction::generate(uint16_t currentPC)
 {
-    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<6>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<6>(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_destinationRegister))
         .set(convertRegisterToBinary(m_baseRegister))
@@ -266,9 +266,9 @@ LeaInstruction::LeaInstruction(uint8_t destinationRegister,
 {
 }
 
-uint16_t LeaInstruction::generate()
+uint16_t LeaInstruction::generate(uint16_t currentPC)
 {
-    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_destinationRegister))
         .set(offsetToJump);
@@ -283,9 +283,9 @@ StInstruction::StInstruction(uint8_t sourceRegister,
 {
 }
 
-uint16_t StInstruction::generate()
+uint16_t StInstruction::generate(uint16_t currentPC)
 {
-    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_sourceRegister))
         .set(offsetToJump);
@@ -300,9 +300,9 @@ StiInstruction::StiInstruction(uint8_t sourceRegister,
 {
 }
 
-uint16_t StiInstruction::generate()
+uint16_t StiInstruction::generate(uint16_t currentPC)
 {
-    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo<9>(m_labelOrOffset);
+    auto offsetToJump = Assembler::getBinaryOffsetToJumpTo(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_sourceRegister))
         .set(offsetToJump);
@@ -318,7 +318,7 @@ NotInstruction::NotInstruction(uint8_t destinationRegister,
 {
 }
 
-uint16_t NotInstruction::generate() 
+uint16_t NotInstruction::generate(uint16_t) 
 {
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_destinationRegister))
@@ -329,7 +329,7 @@ uint16_t NotInstruction::generate()
 
 std::string NotInstruction::opcode() const { return "1001"; }
 
-uint16_t RtiInstruction::generate() {
+uint16_t RtiInstruction::generate(uint16_t) {
         m_assembelyInstruction.set(opcode())
         .set("000000000000");
     return m_assembelyInstruction.instruction();
@@ -341,7 +341,7 @@ TrapInstruction::TrapInstruction(uint8_t trapVector) : m_trapVector(trapVector)
 {
 }
 
-uint16_t TrapInstruction::generate()
+uint16_t TrapInstruction::generate(uint16_t)
 {
     m_assembelyInstruction.set("1111").set("0000").set(
         Assembler::toBinaryString<8>(m_trapVector));
@@ -357,9 +357,9 @@ StrInstruction::StrInstruction(uint8_t sourceRegister, uint8_t baseRegister,
 {
 }
 
-uint16_t StrInstruction::generate()
+uint16_t StrInstruction::generate(uint16_t currentPC)
 {
-    auto offset = Assembler::getBinaryOffsetToJumpTo<6>(m_labelOrOffset);
+    auto offset = Assembler::getBinaryOffsetToJumpTo<6>(m_labelOrOffset, currentPC);
     m_assembelyInstruction.set(opcode())
         .set(convertRegisterToBinary(m_sourceRegister))
         .set(convertRegisterToBinary(m_baseRegister))
@@ -371,18 +371,18 @@ std::string StrInstruction::opcode() const { return "0111"; }
 
 OriginDerective::OriginDerective(uint16_t origin) : m_origin(origin) {}
 
-uint16_t OriginDerective::generate() { return m_origin; }
+uint16_t OriginDerective::generate(uint16_t) { return m_origin; }
 
 FillDerective::FillDerective(uint16_t value) : m_value(value) {}
 
-uint16_t FillDerective::generate() { return m_value; }
+uint16_t FillDerective::generate(uint16_t) { return m_value; }
 
 BlkwDerective::BlkwDerective(uint16_t numberOfMemoryLocations)
     : m_numberOfMemoryLocations(numberOfMemoryLocations)
 {
 }
 
-uint16_t BlkwDerective::generate()
+uint16_t BlkwDerective::generate(uint16_t)
 {
     assert(true && "should not call this method");
     return -1;
@@ -398,7 +398,7 @@ StringDerective::StringDerective(const std::string& stringToWrite)
 {
 }
 
-uint16_t StringDerective::generate()
+uint16_t StringDerective::generate(uint16_t)
 {
     assert(false && "should not call this method");
     return -1;
@@ -409,7 +409,7 @@ std::string StringDerective::getStringToWrite() const
     return m_stringToWrite;
 }
 
-uint16_t EndDerective::generate()
+uint16_t EndDerective::generate(uint16_t)
 {
     assert(false && "should not call this method");
     return -1;
