@@ -68,6 +68,36 @@ bool CPU::load(const std::string& fileToRun)
     return true;
 }
 
+bool CPU::emulate(uint16_t instruction) 
+{
+    auto opCode = getOpCode(instruction);
+    switch (opCode) {
+    case InsturctionOpCode::ADD: {
+        uint8_t destinationRegister = getDestinationRegister(instruction);
+        uint8_t sourceRegister = getSourceBaseRegister(instruction);
+        if ((instruction >> 5) & 0x1) {
+            uint8_t immediateValue = retrieveBits(instruction, 4, 5);
+            m_registers[destinationRegister] =
+                m_registers[sourceRegister] + immediateValue;
+        }
+        else {
+            uint8_t secondSource = retrieveBits(instruction, 2, 3);
+            m_registers[destinationRegister] =
+                m_registers[sourceRegister] + m_registers[secondSource];
+        }
+        break;
+    }
+    case InsturctionOpCode::LD: {
+        uint8_t destinationRegister = getDestinationRegister(instruction);
+        int16_t offset = retrieveBits(instruction, 8, 9);
+        m_registers[destinationRegister] = m_memory[m_pc + offset];
+        setconDitionalCodes(destinationRegister);
+        break;
+    }
+    }
+    return true;
+}
+
 bool CPU::emulate()
 {
     while (true) {
@@ -75,36 +105,10 @@ bool CPU::emulate()
         // as emulator can't differentiate insturction from
         // raw data.
         uint16_t instruction = m_memory[m_pc++];
-
         if (instruction == 0xDEAD) {
             break;
         }
-
-        auto opCode = getOpCode(instruction);
-        switch (opCode) {
-        case InsturctionOpCode::ADD: {
-            uint8_t destinationRegister = getDestinationRegister(instruction);
-            uint8_t sourceRegister = getSourceBaseRegister(instruction);
-            if ((instruction >> 5) & 0x1) {
-                uint8_t immediateValue = retrieveBits(instruction, 4, 5);
-                m_registers[destinationRegister] =
-                    m_registers[sourceRegister] + immediateValue;
-            }
-            else {
-                uint8_t secondSource = retrieveBits(instruction, 2, 3);
-                m_registers[destinationRegister] =
-                    m_registers[sourceRegister] + m_registers[secondSource];
-            }
-            break;
-        }
-        case InsturctionOpCode::LD: {
-            uint8_t destinationRegister = getDestinationRegister(instruction);
-            int16_t offset = retrieveBits(instruction, 8, 9);
-            m_registers[destinationRegister] = m_memory[m_pc + offset];
-            setconDitionalCodes(destinationRegister);
-            break;
-        }
-        }
+        emulate(instruction);
     }
     return true;
 }

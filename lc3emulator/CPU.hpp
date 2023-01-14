@@ -31,11 +31,20 @@ class Instruction {
     uint16_t m_instruction;
 };
 
+
 class CPU {
+  public:
+    static constexpr uint16_t MEMORY_CAPACITY =
+        std::numeric_limits<uint16_t>::max();
+    static constexpr uint8_t NUMBER_OF_REGISTERS = 8;
+    using Registers = std::array<uint8_t, NUMBER_OF_REGISTERS>;
+    using Memory = std::array<uint16_t, MEMORY_CAPACITY>;
+
   public:
     CPU();
     bool load(const std::string& fileToRun);
     bool emulate();
+    bool emulate(uint16_t instruction);
 
   private:
     void dumpMemory(uint16_t start, uint16_t size);
@@ -43,18 +52,14 @@ class CPU {
     void setconDitionalCodes(uint8_t destinationRegister);
 
   private:
-    static constexpr uint16_t MEMORY_CAPACITY =
-        std::numeric_limits<uint16_t>::max();
-    static constexpr uint8_t NUMBER_OF_REGISTERS = 8;
-
-  private:
-    std::array<uint16_t, MEMORY_CAPACITY> m_memory;
-    std::array<uint8_t, NUMBER_OF_REGISTERS> m_registers;
+    Memory m_memory;
+    Registers m_registers;
     uint16_t m_pc;
-
     struct ConditionalCode {
-      uint8_t n;
-      uint8_t z;
-      uint8_t p;
+        uint8_t n;
+        uint8_t z;
+        uint8_t p;
     } m_conditionalCodes;
+    
+    friend class CPUTests;
 };
