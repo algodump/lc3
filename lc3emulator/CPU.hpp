@@ -22,6 +22,10 @@ enum class InstructionOpCode : uint8_t {
     TRAP = 0b1111,
 };
 
+enum Register {
+    R0 = 0, R1 = 1, R2 = 2, R3 = 3, R4 = 4, R5 = 5, R6 = 6, R7 = 7
+};
+
 class Instruction {
   public:
     Instruction(uint16_t instruction) : m_instruction(instruction) {}
@@ -37,7 +41,7 @@ class CPU {
     static constexpr uint16_t MEMORY_CAPACITY =
         std::numeric_limits<uint16_t>::max();
     static constexpr uint8_t NUMBER_OF_REGISTERS = 8;
-    using Registers = std::array<uint8_t, NUMBER_OF_REGISTERS>;
+    using Registers = std::array<int16_t, NUMBER_OF_REGISTERS>;
     using Memory = std::array<uint16_t, MEMORY_CAPACITY>;
 
   public:
@@ -49,7 +53,7 @@ class CPU {
   private:
     void dumpMemory(uint16_t start, uint16_t size);
     InstructionOpCode getOpCode(uint16_t instruction) const;
-    void setconDitionalCodes(uint8_t destinationRegister);
+    void setConditionalCodes(Register destinationRegister);
 
   private:
     Memory m_memory;

@@ -15,14 +15,14 @@ int16_t retrieveBits(uint16_t insturction, uint8_t start, uint8_t size)
     return res;
 }
 
-uint16_t getDestinationRegister(uint16_t insturction)
+Register getDestinationRegisterNumber(uint16_t insturction)
 {
-    return retrieveBits(insturction, 11, 3);
+    return static_cast<Register>(retrieveBits(insturction, 11, 3));
 }
 
-uint16_t getSourceBaseRegister(uint16_t insturction)
+Register getSourceBaseRegisterNumber(uint16_t insturction)
 {
-    return retrieveBits(insturction, 8, 3);
+    return static_cast<Register>(retrieveBits(insturction, 8, 3));
 }
 } // namespace
 
@@ -33,12 +33,12 @@ InstructionOpCode CPU::getOpCode(uint16_t instruction) const
     return static_cast<InstructionOpCode>(retrieveBits(instruction, 15, 4));
 }
 
-void CPU::setconDitionalCodes(uint8_t destinationRegister)
+void CPU::setConditionalCodes(Register destinationRegisterNumber)
 {
-    auto destinationRegisterValue = m_memory[destinationRegister];
-    if (destinationRegisterValue < 0) {
+    auto destinationRegisterNumberValue = m_memory[destinationRegisterNumber];
+    if (destinationRegisterNumberValue < 0) {
         m_conditionalCodes.N = 1;
-    } else if (destinationRegisterValue == 0) {
+    } else if (destinationRegisterNumberValue == 0) {
         m_conditionalCodes.Z = 1;
     } else {
         m_conditionalCodes.P = 1;
@@ -73,35 +73,36 @@ bool CPU::emulate(uint16_t instruction)
     auto opCode = getOpCode(instruction);
     switch (opCode) {
     case InstructionOpCode::ADD: {
-        uint8_t destinationRegister = getDestinationRegister(instruction);
-        uint8_t sourceRegister = getSourceBaseRegister(instruction);
+        Register destinationRegisterNumber = getDestinationRegisterNumber(instruction);
+        Register sourceRegisterNumber = getSourceBaseRegisterNumber(instruction);
         if ((instruction >> 5) & 0x1) {
             uint8_t immediateValue = retrieveBits(instruction, 4, 5);
-            m_registers[destinationRegister] =
-                m_registers[sourceRegister] + immediateValue;
+            m_registers[destinationRegisterNumber] =
+                m_registers[sourceRegisterNumber] + immediateValue;
         }
         else {
-            uint8_t secondSource = retrieveBits(instruction, 2, 3);
-            m_registers[destinationRegister] =
-                m_registers[sourceRegister] + m_registers[secondSource];
+            Register secondSource = static_cast<Register>(retrieveBits(instruction, 2, 3));
+            m_registers[destinationRegisterNumber] =
+                m_registers[sourceRegisterNumber] + m_registers[secondSource];
         }
-        setconDitionalCodes(destinationRegister);
+        setConditionalCodes(sourceRegisterNumber);
         break;
     }
     case InstructionOpCode::AND: {
-        uint8_t destinationRegister = getDestinationRegister(instruction);
-        uint8_t sourceRegister = getSourceBaseRegister(instruction);
+        Register destinationRegisterNumber = getDestinationRegisterNumber(instruction);
+        Register sourceRegisterNumber = getSourceBaseRegisterNumber(instruction);
         if ((instruction >> 5) & 0x1) {
             uint8_t immediateValue = retrieveBits(instruction, 4, 5);
-            m_registers[destinationRegister] =
-                m_registers[sourceRegister] & immediateValue;
+            m_registers[destinationRegisterNumber] =
+                m_registers[sourceRegisterNumber] & immediateValue;
         }
         else {
-            uint8_t secondSource = retrieveBits(instruction, 2, 3);
-            m_registers[destinationRegister] =
-                m_registers[sourceRegister] & m_registers[secondSource];
+            Register secondSourceReigsterNumber =
+                static_cast<Register>(retrieveBits(instruction, 2, 3));
+            m_registers[destinationRegisterNumber] =
+                m_registers[sourceRegisterNumber] & m_registers[secondSourceReigsterNumber];
         }
-        setconDitionalCodes(destinationRegister);
+        setConditionalCodes(destinationRegisterNumber);
         break;
     }
     case InstructionOpCode::BR: {
@@ -120,10 +121,10 @@ bool CPU::emulate(uint16_t instruction)
         break;
     }
     case InstructionOpCode::LD: {
-        uint8_t destinationRegister = getDestinationRegister(instruction);
+        Register destinationRegisterNumber = getDestinationRegisterNumber(instruction);
         int16_t offset = retrieveBits(instruction, 8, 9);
-        m_registers[destinationRegister] = m_memory[m_pc + offset];
-        setconDitionalCodes(destinationRegister);
+        m_registers[destinationRegisterNumber] = m_memory[m_pc + offset];
+        setConditionalCodes(destinationRegisterNumber);
         break;
     }
     }

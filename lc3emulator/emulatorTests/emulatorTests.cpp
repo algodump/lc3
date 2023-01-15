@@ -8,10 +8,10 @@ class CPUTests : public ::testing::Test {
         {
             // ADD R0, R1, R2 ; R0 = R1 + R2
             uint16_t instruction = 0b0001000001000010;
-            cpu.m_registers[1] = 31;
-            cpu.m_registers[2] = 42;
+            cpu.m_registers[R1] = 31;
+            cpu.m_registers[R2] = 42;
             cpu.emulate(instruction);
-            ASSERT_EQ(cpu.m_registers[0], cpu.m_registers[1] + cpu.m_registers[2]);
+            ASSERT_EQ(cpu.m_registers[R0], cpu.m_registers[R1] + cpu.m_registers[R2]);
             ASSERT_EQ(cpu.m_conditionalCodes.P, 1);
         }
 
@@ -19,10 +19,10 @@ class CPUTests : public ::testing::Test {
         {
             // AND R0, R1, #7; R0 = R1 & R2
             uint16_t instruction = 0b0101000001100111;
-            cpu.m_registers[1] = 0b0111;
+            cpu.m_registers[R1] = 0b0111;
             cpu.emulate(instruction);
-            ASSERT_EQ(cpu.m_registers[0],
-                      cpu.m_registers[1] & 0x7);
+            ASSERT_EQ(cpu.m_registers[R0],
+                      cpu.m_registers[R1] & 0x7);
             ASSERT_EQ(cpu.m_conditionalCodes.P, 1);
         }
 
@@ -56,10 +56,10 @@ class CPUTests : public ::testing::Test {
             // value is encoded as lable location - pc
             uint16_t value = 42;
             cpu.m_pc = 0;
-            cpu.m_memory[2] = value;
+            cpu.m_memory[R2] = value;
             uint16_t instruction = 0b0010001000000010;
             cpu.emulate(instruction);
-            ASSERT_EQ(cpu.m_registers[1], value);
+            ASSERT_EQ(cpu.m_registers[R1], value);
             ASSERT_EQ(cpu.m_conditionalCodes.P, 1);
         }
 
