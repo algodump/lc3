@@ -35,13 +35,13 @@ InstructionOpCode CPU::getOpCode(uint16_t instruction) const
 
 void CPU::setConditionalCodes(Register destinationRegisterNumber)
 {
-    auto destinationRegisterNumberValue = m_memory[destinationRegisterNumber];
+    auto destinationRegisterNumberValue = m_registers[destinationRegisterNumber];
     if (destinationRegisterNumberValue < 0) {
-        m_conditionalCodes.N = 1;
+        m_conditionalCodes.N = true;
     } else if (destinationRegisterNumberValue == 0) {
-        m_conditionalCodes.Z = 1;
+        m_conditionalCodes.Z = true;
     } else {
-        m_conditionalCodes.P = 1;
+        m_conditionalCodes.P = true;
     }
 }
 

@@ -60,9 +60,9 @@ class CPU {
     Registers m_registers;
     uint16_t m_pc;
     struct ConditionalCode {
-        uint8_t N;
-        uint8_t Z;
-        uint8_t P;
+        bool N;
+        bool Z;
+        bool P;
     } m_conditionalCodes;
     
     friend class CPUTests;

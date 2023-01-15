@@ -64,7 +64,7 @@ class CPUTests : public ::testing::Test {
         cpu.emulate(addInstruction);
         ASSERT_EQ(cpu.m_registers[R0],
                   cpu.m_registers[R1] + cpu.m_registers[R2]);
-        ASSERT_EQ(cpu.m_conditionalCodes.P, 1);
+        ASSERT_EQ(cpu.m_conditionalCodes.P, true);
     }
 
     void testAndInstruction()
@@ -81,7 +81,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_registers[R1] = 8;
         cpu.emulate(andInstruction);
         ASSERT_EQ(cpu.m_registers[R0], cpu.m_registers[R1] & immediateValue);
-        ASSERT_EQ(cpu.m_conditionalCodes.P, 1);
+        ASSERT_EQ(cpu.m_conditionalCodes.P, true);
     }
 
     void testBrInsturction()
@@ -107,7 +107,7 @@ class CPUTests : public ::testing::Test {
         ASSERT_EQ(cpu.m_pc, INIT_PC);
 
         // // both N = 1 and n = 1, so jump
-        cpu.m_conditionalCodes.N = 1;
+        cpu.m_conditionalCodes.N = true;
         cpu.m_pc = INIT_PC;
         uint16_t instructionBRnN = InstructionBuilder()
                                        .set("0000")
@@ -137,7 +137,7 @@ class CPUTests : public ::testing::Test {
                                    .build();
         cpu.emulate(instruction);
         ASSERT_EQ(cpu.m_registers[R1], value);
-        ASSERT_EQ(cpu.m_conditionalCodes.P, 1);
+        ASSERT_EQ(cpu.m_conditionalCodes.P, true);
     }
 
     void testJMP_RETInsturctions()
