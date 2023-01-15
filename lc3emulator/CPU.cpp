@@ -144,6 +144,26 @@ bool CPU::emulate(uint16_t instruction)
         setConditionalCodes(destinationRegisterNumber);
         break;
     }
+    case InstructionOpCode::LDI: {
+        Register destinationRegisterNumber = getDestinationRegisterNumber(instruction);
+        int16_t offset = retrieveBits(instruction, 8, 9);
+
+        m_registers[destinationRegisterNumber] =
+            m_memory[m_memory[m_pc + offset]];
+        setConditionalCodes(destinationRegisterNumber);
+        break;
+    }
+    case InstructionOpCode::LDR: {
+        Register destinationRegisterNumber =
+            getDestinationRegisterNumber(instruction);
+        Register baseRegisterNumber = getSourceBaseRegisterNumber(instruction);
+        int16_t immediateValue = retrieveBits(instruction, 5, 6);
+
+        m_registers[destinationRegisterNumber] =
+            m_registers[baseRegisterNumber] + immediateValue;
+        setConditionalCodes(destinationRegisterNumber);
+        break;
+    }
     }
     return true;
 }

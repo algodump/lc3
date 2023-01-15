@@ -81,7 +81,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_registers[R1] = 8;
         cpu.emulate(andInstruction);
         ASSERT_EQ(cpu.m_registers[R0], cpu.m_registers[R1] & immediateValue);
-        ASSERT_EQ(cpu.m_conditionalCodes.P, true);
+        ASSERT_EQ(cpu.m_conditionalCodes.Z, true);
     }
 
     void testBrInsturction()
@@ -184,6 +184,51 @@ class CPUTests : public ::testing::Test {
         ASSERT_EQ(cpu.m_pc, cpu.m_registers[R2]);
     }
 
+    void testLdiInstruction()
+    {
+        Register destinationRegisterIndex = R5;
+        uint16_t offset = 1;
+        uint16_t value = 0;
+        uint16_t valueLocation = 2;
+        /*
+            mem[0] = inst
+            mem[1] = 2
+            mem[2] = 0
+        */
+        cpu.m_pc = RESET_PC;
+        cpu.m_memory[offset] = valueLocation;
+        cpu.m_memory[valueLocation] = value;
+
+        uint16_t ldiInstruction = InstructionBuilder()
+                                    .set("1010")
+                                    .set(destinationRegisterIndex)
+                                    .set(toBinaryString(offset))
+                                    .build();
+        cpu.emulate(ldiInstruction);
+        ASSERT_EQ(cpu.m_registers[destinationRegisterIndex], 0);
+        ASSERT_EQ(cpu.m_conditionalCodes.Z, true);
+    }
+
+    void testLdrInstruction()
+    {
+        Register destinationRegisterIndex = R2;
+        Register baseRegisterIndex = R1;
+        int16_t offset = 11;
+        uint16_t value = 31;
+        uint16_t ldrInstruction  = InstructionBuilder()
+                                    .set("0110")
+                                    .set(destinationRegisterIndex)
+                                    .set(baseRegisterIndex)
+                                    .set(toBinaryString<6>(offset))
+                                    .build();
+        cpu.m_registers[baseRegisterIndex] = 20;
+        cpu.m_memory[cpu.m_pc + 1] = value;
+
+        cpu.emulate(ldrInstruction);
+        ASSERT_EQ(cpu.m_registers[destinationRegisterIndex], value);
+        ASSERT_EQ(cpu.m_conditionalCodes.P, true);
+    }
+
   protected:
     CPU cpu;
 };
@@ -199,6 +244,10 @@ TEST_F(CPUTests, BrInstruction) { testBrInsturction(); }
 TEST_F(CPUTests, JMP_RETInstructions) { testJMP_RETInsturctions(); }
 
 TEST_F(CPUTests, JSR_JSRRInstructions) { testJSR_JSRRInstructions(); }
+
+TEST_F(CPUTests, LdiInsruction) { testLdiInstruction(); }
+
+TEST_F(CPUTests, LdrInstruction) { testLdrInstruction(); }
 
 int main(int argc, char* argv[])
 {
