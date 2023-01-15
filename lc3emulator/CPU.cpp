@@ -26,7 +26,7 @@ Register getSourceBaseRegisterNumber(uint16_t insturction)
 }
 } // namespace
 
-CPU::CPU() : m_conditionalCodes{0, 0, 0} {}
+CPU::CPU() : m_conditionalCodes{false, false, false} {}
 
 InstructionOpCode CPU::getOpCode(uint16_t instruction) const
 {
@@ -161,6 +161,56 @@ bool CPU::emulate(uint16_t instruction)
             m_registers[baseRegisterNumber] + immediateValue;
         setConditionalCodes(destinationRegisterNumber);
         break;
+    }
+    case InstructionOpCode::LEA: {
+        Register destinationRegisterNumber =
+            getDestinationRegisterNumber(instruction);
+        int16_t labelOffset = retrieveBits(instruction, 8, 9);
+        m_registers[destinationRegisterNumber] = m_pc + labelOffset;
+        setConditionalCodes(destinationRegisterNumber);
+        break;
+    }
+    case InstructionOpCode::NOT: {
+        Register destinationRegisterNumber =
+            getDestinationRegisterNumber(instruction);
+        Register sourceRegisterNumber = getSourceBaseRegisterNumber(instruction);
+        m_registers[destinationRegisterNumber] = ~(m_registers[sourceRegisterNumber]);
+        setConditionalCodes(destinationRegisterNumber);
+        break;
+    }
+    case InstructionOpCode::RTI: {
+        break;
+    }
+    case InstructionOpCode::ST: {
+        Register sourceRegisterNumber =
+            getDestinationRegisterNumber(instruction);
+        int16_t labelOffset = retrieveBits(instruction, 8, 9);
+        m_memory[m_pc + labelOffset] = m_registers[sourceRegisterNumber];
+        break;
+    }
+    case InstructionOpCode::STI: {
+        Register sourceRegisterNumber =
+            getDestinationRegisterNumber(instruction);
+        int16_t labelOffset = retrieveBits(instruction, 8, 9);
+        m_memory[m_memory[m_pc + labelOffset]] =
+            m_registers[sourceRegisterNumber];
+        break;
+    }
+    case InstructionOpCode::STR: {
+        Register sourceRegisterNumber =
+            getDestinationRegisterNumber(instruction);
+        Register baseRegisterNumber =
+            getSourceBaseRegisterNumber(instruction);
+        int16_t labelOffset = retrieveBits(instruction, 5, 6);
+        m_memory[m_registers[baseRegisterNumber] + labelOffset] =
+            m_registers[sourceRegisterNumber];
+        break;
+    }
+    case InstructionOpCode::TRAP: {
+        break;
+    }
+    default: {
+        assert(false && "illegal instruction");
     }
     }
     return true;

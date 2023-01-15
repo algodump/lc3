@@ -2,7 +2,6 @@
 #include <bitset>
 #include <gtest/gtest.h>
 
-
 namespace {
 uint16_t RESET_PC = 0;
 uint16_t INIT_PC = 42;
@@ -209,10 +208,10 @@ class CPUTests : public ::testing::Test {
         cpu.m_memory[valueLocation] = value;
 
         uint16_t ldiInstruction = InstructionBuilder()
-                                    .set(InstructionOpCode::LDI)
-                                    .set(destinationRegisterIndex)
-                                    .set(toBinaryString(offset))
-                                    .build();
+                                      .set(InstructionOpCode::LDI)
+                                      .set(destinationRegisterIndex)
+                                      .set(toBinaryString(offset))
+                                      .build();
         cpu.emulate(ldiInstruction);
         ASSERT_EQ(cpu.m_registers[destinationRegisterIndex], 0);
         ASSERT_EQ(cpu.m_conditionalCodes.Z, true);
@@ -224,18 +223,98 @@ class CPUTests : public ::testing::Test {
         Register baseRegisterIndex = R1;
         int16_t offset = 11;
         uint16_t value = 31;
-        uint16_t ldrInstruction  = InstructionBuilder()
-                                    .set(InstructionOpCode::LDR)
-                                    .set(destinationRegisterIndex)
-                                    .set(baseRegisterIndex)
-                                    .set(toBinaryString<6>(offset))
-                                    .build();
+        uint16_t ldrInstruction = InstructionBuilder()
+                                      .set(InstructionOpCode::LDR)
+                                      .set(destinationRegisterIndex)
+                                      .set(baseRegisterIndex)
+                                      .set(toBinaryString<6>(offset))
+                                      .build();
         cpu.m_registers[baseRegisterIndex] = 20;
         cpu.m_memory[cpu.m_pc + 1] = value;
 
         cpu.emulate(ldrInstruction);
         ASSERT_EQ(cpu.m_registers[destinationRegisterIndex], value);
         ASSERT_EQ(cpu.m_conditionalCodes.P, true);
+    }
+
+    void testLeaInstruction()
+    {
+        Register destinationRegisterNumber = R5;
+        uint16_t offset = 72;
+        uint16_t leaInstruction = InstructionBuilder()
+                                      .set(InstructionOpCode::LEA)
+                                      .set(destinationRegisterNumber)
+                                      .set(toBinaryString(offset))
+                                      .build();
+        cpu.m_pc = INIT_PC;
+        cpu.emulate(leaInstruction);
+        ASSERT_EQ(cpu.m_registers[destinationRegisterNumber], offset + INIT_PC);
+    }
+
+    void testNotInstruction()
+    {
+        Register destinationRegisterNumber = R0;
+        Register sourceRegisterNumber = R1;
+        uint16_t notInstruction = InstructionBuilder()
+                                      .set(InstructionOpCode::NOT)
+                                      .set(destinationRegisterNumber)
+                                      .set(sourceRegisterNumber)
+                                      .build();
+        cpu.m_registers[sourceRegisterNumber] = 0b1010101010101010;
+        cpu.emulate(notInstruction);
+        ASSERT_EQ(cpu.m_registers[destinationRegisterNumber],
+                  ~cpu.m_registers[sourceRegisterNumber]);
+        ASSERT_EQ(cpu.m_conditionalCodes.P, true);
+    }
+
+    void testStInstruction()
+    {
+        Register sourceRegisterNumber = R0;
+        int16_t offset = 412;
+        uint16_t stInstruction = InstructionBuilder()
+                                     .set(InstructionOpCode::ST)
+                                     .set(sourceRegisterNumber)
+                                     .set(toBinaryString(offset))
+                                     .build();
+        cpu.m_pc = RESET_PC;
+        cpu.m_registers[sourceRegisterNumber] = 32;
+        cpu.emulate(stInstruction);
+        ASSERT_EQ(cpu.m_memory[cpu.m_pc + offset],
+                  cpu.m_registers[sourceRegisterNumber]);
+    }
+
+    void testStiInstruction()
+    {
+        Register sourceRegisterNumber = R0;
+        int16_t offset = 412;
+        uint16_t stInstruction = InstructionBuilder()
+                                     .set(InstructionOpCode::STI)
+                                     .set(sourceRegisterNumber)
+                                     .set(toBinaryString(offset))
+                                     .build();
+        cpu.m_pc = RESET_PC;
+        cpu.m_registers[sourceRegisterNumber] = 1024;
+        cpu.emulate(stInstruction);
+        ASSERT_EQ(cpu.m_memory[cpu.m_memory[cpu.m_pc + offset]],
+                  cpu.m_registers[sourceRegisterNumber]);
+    }
+
+    void testStrInstruction() {
+        Register sourceRegisterNumber = R0;
+        Register baseRegisterNumber = R1;
+        uint16_t offset = 13;
+
+        uint16_t strInstruction = InstructionBuilder()
+                                    .set(InstructionOpCode::STR)
+                                    .set(sourceRegisterNumber)
+                                    .set(baseRegisterNumber)
+                                    .set(toBinaryString<6>(offset))
+                                    .build();
+        cpu.m_registers[baseRegisterNumber] = 1;
+        cpu.m_registers[sourceRegisterNumber] = 42;
+        cpu.emulate(strInstruction);
+        ASSERT_EQ(cpu.m_memory[cpu.m_registers[baseRegisterNumber] + offset],
+                  cpu.m_registers[sourceRegisterNumber]);
     }
 
   protected:
@@ -257,6 +336,16 @@ TEST_F(CPUTests, JSR_JSRR) { testJSR_JSRRInstructions(); }
 TEST_F(CPUTests, LDI) { testLdiInstruction(); }
 
 TEST_F(CPUTests, LDR) { testLdrInstruction(); }
+
+TEST_F(CPUTests, LEA) { testLeaInstruction(); }
+
+TEST_F(CPUTests, NOT) { testNotInstruction(); }
+
+TEST_F(CPUTests, ST) { testStInstruction(); }
+
+TEST_F(CPUTests, STI) { testStiInstruction(); }
+
+TEST_F(CPUTests, STR) { testStrInstruction(); }
 
 int main(int argc, char* argv[])
 {
