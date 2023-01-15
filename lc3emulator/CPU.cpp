@@ -62,8 +62,6 @@ bool CPU::load(const std::string& fileToRun)
             m_memory[origin++] = data;
         }
     }
-    // TODO: find out what are the terminating conditions
-    m_memory[origin] = 0xDEAD;
     dumpMemory(m_pc, 5);
     return true;
 }
@@ -106,9 +104,9 @@ bool CPU::emulate(uint16_t instruction)
         break;
     }
     case InstructionOpCode::BR: {
-        uint8_t n = retrieveBits(instruction, 11, 1);
-        uint8_t z = retrieveBits(instruction, 10, 1);
-        uint8_t p = retrieveBits(instruction, 9, 1);
+        uint8_t n = (instruction >> 11) & 0x1;
+        uint8_t z = (instruction >> 10) & 0x1;
+        uint8_t p = (instruction >> 9) & 0x1;
 
         int16_t offset = retrieveBits(instruction, 8, 9);
 
@@ -175,7 +173,8 @@ bool CPU::emulate()
         // as emulator can't differentiate insturction from
         // raw data.
         uint16_t instruction = m_memory[m_pc++];
-        if (instruction == 0xDEAD) {
+        if (getOpCode(instruction) == InstructionOpCode::JMP_RET &&
+            getSourceBaseRegisterNumber(instruction) == R7) {
             break;
         }
         emulate(instruction);
