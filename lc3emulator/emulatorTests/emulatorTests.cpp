@@ -27,6 +27,15 @@ class InstructionBuilder {
         return *this;
     }
 
+    InstructionBuilder& set(InstructionOpCode instructionOpCode)
+    {
+        for (auto bit : std::bitset<4>(static_cast<int8_t>(instructionOpCode))
+                            .to_string()) {
+            m_instruction.set(m_bitPointer--, (bit - '0') == 1);
+        }
+        return *this;
+    }
+
     InstructionBuilder& set(char bit)
     {
         m_instruction.set(m_bitPointer--, (bit - '0') == 1);
@@ -53,7 +62,7 @@ class CPUTests : public ::testing::Test {
     {
         // ADD R0, R1, R2 ; R0 = R1 + R2
         uint16_t addInstruction = InstructionBuilder()
-                                      .set("0001")
+                                      .set(InstructionOpCode::ADD)
                                       .set(R0)
                                       .set(R1)
                                       .set("000")
@@ -72,7 +81,7 @@ class CPUTests : public ::testing::Test {
         // AND R0, R1, #7; R0 = R1 & R2
         uint16_t immediateValue = 7;
         uint16_t andInstruction = InstructionBuilder()
-                                      .set("0101")
+                                      .set(InstructionOpCode::AND)
                                       .set(R0)
                                       .set(R1)
                                       .set("1")
@@ -89,7 +98,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_pc = INIT_PC;
         uint16_t offset = 64;
         uint16_t instructionBRnzp = InstructionBuilder()
-                                        .set("0000")
+                                        .set(InstructionOpCode::BR)
                                         .set("000")
                                         .set(toBinaryString(offset))
                                         .build();
@@ -99,7 +108,7 @@ class CPUTests : public ::testing::Test {
         // N = 0 and n = 1, don't jump
         cpu.m_pc = INIT_PC;
         uint16_t instructionBRn = InstructionBuilder()
-                                      .set("0000")
+                                      .set(InstructionOpCode::BR)
                                       .set("100")
                                       .set(toBinaryString(offset))
                                       .build();
@@ -110,7 +119,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_conditionalCodes.N = true;
         cpu.m_pc = INIT_PC;
         uint16_t instructionBRnN = InstructionBuilder()
-                                       .set("0000")
+                                       .set(InstructionOpCode::BR)
                                        .set("100")
                                        .set(toBinaryString(offset))
                                        .build();
@@ -131,7 +140,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_memory[offset] = value;
 
         uint16_t instruction = InstructionBuilder()
-                                   .set("0010")
+                                   .set(InstructionOpCode::LD)
                                    .set(R1)
                                    .set(toBinaryString(offset))
                                    .build();
@@ -146,7 +155,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_registers[R7] = registerValue;
         // JMP R3
         uint16_t jmpInstruction = InstructionBuilder()
-                                      .set("1100")
+                                      .set(InstructionOpCode::JMP_RET)
                                       .set("000")
                                       .set(R7)
                                       .set("000000")
@@ -162,7 +171,7 @@ class CPUTests : public ::testing::Test {
         uint16_t offset = 16;
         // test JSR
         uint16_t jsrInstruction = InstructionBuilder()
-                                      .set("0100")
+                                      .set(InstructionOpCode::JSR_JSRR)
                                       .set('1')
                                       .set(toBinaryString<11>(offset))
                                       .build();
@@ -174,7 +183,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_pc = INIT_PC;
         cpu.m_registers[R2] = 31;
         uint16_t jsrrInstruction = InstructionBuilder()
-                                       .set("0100")
+                                       .set(InstructionOpCode::JSR_JSRR)
                                        .set("000")
                                        .set(R2)
                                        .set("000000")
@@ -200,7 +209,7 @@ class CPUTests : public ::testing::Test {
         cpu.m_memory[valueLocation] = value;
 
         uint16_t ldiInstruction = InstructionBuilder()
-                                    .set("1010")
+                                    .set(InstructionOpCode::LDI)
                                     .set(destinationRegisterIndex)
                                     .set(toBinaryString(offset))
                                     .build();
@@ -216,7 +225,7 @@ class CPUTests : public ::testing::Test {
         int16_t offset = 11;
         uint16_t value = 31;
         uint16_t ldrInstruction  = InstructionBuilder()
-                                    .set("0110")
+                                    .set(InstructionOpCode::LDR)
                                     .set(destinationRegisterIndex)
                                     .set(baseRegisterIndex)
                                     .set(toBinaryString<6>(offset))
@@ -233,21 +242,21 @@ class CPUTests : public ::testing::Test {
     CPU cpu;
 };
 
-TEST_F(CPUTests, AddInstruction) { testAddInstruction(); }
+TEST_F(CPUTests, ADD) { testAddInstruction(); }
 
-TEST_F(CPUTests, AndInstruction) { testAndInstruction(); }
+TEST_F(CPUTests, AND) { testAndInstruction(); }
 
-TEST_F(CPUTests, LdInstruction) { testLdInstruction(); }
+TEST_F(CPUTests, LD) { testLdInstruction(); }
 
-TEST_F(CPUTests, BrInstruction) { testBrInsturction(); }
+TEST_F(CPUTests, BR) { testBrInsturction(); }
 
-TEST_F(CPUTests, JMP_RETInstructions) { testJMP_RETInsturctions(); }
+TEST_F(CPUTests, JMP_RET) { testJMP_RETInsturctions(); }
 
-TEST_F(CPUTests, JSR_JSRRInstructions) { testJSR_JSRRInstructions(); }
+TEST_F(CPUTests, JSR_JSRR) { testJSR_JSRRInstructions(); }
 
-TEST_F(CPUTests, LdiInsruction) { testLdiInstruction(); }
+TEST_F(CPUTests, LDI) { testLdiInstruction(); }
 
-TEST_F(CPUTests, LdrInstruction) { testLdrInstruction(); }
+TEST_F(CPUTests, LDR) { testLdrInstruction(); }
 
 int main(int argc, char* argv[])
 {
