@@ -2,6 +2,14 @@
 
 #include "../CPU.hpp"
 
+namespace 
+{
+    uint16_t RESET_PC = 0;
+    uint16_t INIT_PC = 42;
+}
+
+// TODO: add instruction builder that allows to
+//       construct instruction from string
 class CPUTests : public ::testing::Test {
       protected:
         void testAddInstruction()
@@ -55,12 +63,40 @@ class CPUTests : public ::testing::Test {
             // LD R1, VALUE
             // value is encoded as lable location - pc
             uint16_t value = 42;
-            cpu.m_pc = 0;
+            cpu.m_pc = RESET_PC;
             cpu.m_memory[R2] = value;
             uint16_t instruction = 0b0010001000000010;
             cpu.emulate(instruction);
             ASSERT_EQ(cpu.m_registers[R1], value);
             ASSERT_EQ(cpu.m_conditionalCodes.P, 1);
+        }
+
+        void testJMP_RETInsturctions()
+        {
+            uint16_t registerValue = 42;
+            cpu.m_registers[R7] = registerValue;
+            // JMP R3
+            uint16_t jmpInstruction = 0b1100000111000000;
+            cpu.emulate(jmpInstruction);
+            ASSERT_EQ(cpu.m_pc, registerValue);
+        }
+
+        void testJSR_JSRRInstructions()
+        {
+            cpu.m_pc = INIT_PC;
+            // test JSR
+            uint16_t jsrInstruction = 0b0100100000010000;
+            cpu.emulate(jsrInstruction);
+            ASSERT_EQ(cpu.m_registers[R7], INIT_PC);
+            ASSERT_EQ(cpu.m_pc, INIT_PC + 16);
+
+            // test JSRR
+            cpu.m_pc = INIT_PC;
+            cpu.m_registers[R2] = 31;
+            uint16_t jsrrInstruction = 0b0100000010000000;
+            cpu.emulate(jsrrInstruction);
+            ASSERT_EQ(cpu.m_registers[R7], INIT_PC);
+            ASSERT_EQ(cpu.m_pc, cpu.m_registers[R2]);
         }
 
       protected:
@@ -86,6 +122,17 @@ TEST_F(CPUTests, BrInstruction)
 {
     testBrInsturction();
 }
+
+TEST_F(CPUTests, JMP_RETInstructions)
+{
+    testJMP_RETInsturctions();
+}
+
+TEST_F(CPUTests, JSR_JSRRInstructions)
+{
+    testJSR_JSRRInstructions();
+}
+
 
 int main(int argc, char* argv[])
 {

@@ -120,6 +120,23 @@ bool CPU::emulate(uint16_t instruction)
         }
         break;
     }
+    case InstructionOpCode::JMP_RET: {
+        Register baseRegisterNumber = getSourceBaseRegisterNumber(instruction);
+        m_pc = m_registers[baseRegisterNumber];
+        break;
+    }
+    case InstructionOpCode::JSR_JSRR: {
+        m_registers[R7] = m_pc;
+        // is JSR
+        if ((instruction >> 11) & 0x1) {
+            int16_t offset = retrieveBits(instruction, 10, 11);
+            m_pc += offset;
+        } else {
+            Register baseRegisterNumber = getSourceBaseRegisterNumber(instruction);
+            m_pc = m_registers[baseRegisterNumber];
+        }
+        break;
+    }
     case InstructionOpCode::LD: {
         Register destinationRegisterNumber = getDestinationRegisterNumber(instruction);
         int16_t offset = retrieveBits(instruction, 8, 9);
