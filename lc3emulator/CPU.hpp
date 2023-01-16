@@ -22,6 +22,21 @@ enum class InstructionOpCode : uint8_t {
     TRAP = 0b1111,
 };
 
+enum class Traps : uint8_t {
+    GETC = 0x20,
+    OUT = 0x21,
+    PUTS = 0x22,
+    IN = 0x23,
+    PUTSP = 0x24,
+    HALT = 0x25
+};
+
+// TODO: add to string conversion
+enum class StatusCode : uint8_t {
+    SUCCESS,
+    HALTED,
+};
+
 enum Register {
     R0 = 0, R1 = 1, R2 = 2, R3 = 3, R4 = 4, R5 = 5, R6 = 6, R7 = 7
 };
@@ -47,8 +62,8 @@ class CPU {
   public:
     CPU();
     bool load(const std::string& fileToRun);
-    bool emulate();
-    bool emulate(uint16_t instruction);
+    StatusCode emulate();
+    StatusCode emulate(uint16_t instruction);
 
   private:
     void dumpMemory(uint16_t start, uint16_t size);

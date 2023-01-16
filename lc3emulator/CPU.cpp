@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iostream>
 
-
 namespace {
 int16_t retrieveBits(uint16_t insturction, uint8_t start, uint8_t size)
 {
@@ -66,7 +65,7 @@ bool CPU::load(const std::string& fileToRun)
     return true;
 }
 
-bool CPU::emulate(uint16_t instruction) 
+StatusCode CPU::emulate(uint16_t instruction) 
 {
     auto opCode = getOpCode(instruction);
     switch (opCode) {
@@ -207,17 +206,70 @@ bool CPU::emulate(uint16_t instruction)
         break;
     }
     case InstructionOpCode::TRAP: {
+        uint8_t trapVector = retrieveBits(instruction, 7, 8);
+        // NOTE: real implementaion should jump to trap vector table
+        //       that resides in our emulator memory, and that table 
+        //       should point to another piece of memory that contains
+        //       trap routines implementaion.
+        switch (static_cast<Traps>(trapVector)) {
+        case Traps::GETC: {
+            uint16_t charFromKeyboard = getchar();
+            m_memory[R0] = charFromKeyboard;
+            setConditionalCodes(R0);
+            break;
+        }
+        case Traps::OUT: {
+            putchar(m_memory[0]);
+            break;
+        }
+        case Traps::PUTS: {
+            uint16_t stringPointer = m_registers[R0];
+            std::string out;
+            while (m_memory[stringPointer] != 0) {
+                out += m_memory[stringPointer++];
+            }
+            m_pc += out.size();
+            std::cout << out << '\n';
+            break;
+        }
+        case Traps::IN: {
+            char charFromKeyboard = getchar();
+            putchar(charFromKeyboard);
+            m_memory[R0] = charFromKeyboard;
+            setConditionalCodes(R0);
+            break;
+        }
+        case Traps::PUTSP: {
+            uint16_t stringPointer = m_registers[R0];
+            std::string out;
+            while (m_memory[stringPointer] != 0) {
+                uint16_t twoChars = m_memory[stringPointer];
+                char char1 = retrieveBits(twoChars,7, 8);
+                char char2 = retrieveBits(twoChars, 15, 8);
+                out += m_memory[stringPointer++];
+            }
+            m_pc += out.size();
+            break;
+        }
+        case Traps::HALT: {
+            std::cout << "HALT\n";
+            return StatusCode::HALTED;
+        }
+        default:
+            assert(false && "current trap is not supported");
+        }
         break;
     }
     default: {
         assert(false && "illegal instruction");
     }
     }
-    return true;
+    return StatusCode::SUCCESS;
 }
 
-bool CPU::emulate()
+StatusCode CPU::emulate()
 {
+    StatusCode code = StatusCode::SUCCESS;
     while (true) {
         // User is responsible for not mixing data and insturctions
         // as emulator can't differentiate insturction from
@@ -227,9 +279,12 @@ bool CPU::emulate()
             getSourceBaseRegisterNumber(instruction) == R7) {
             break;
         }
-        emulate(instruction);
+        code = emulate(instruction);
+        if (code == StatusCode::HALTED){
+            break;
+        }
     }
-    return true;
+    return code;
 }
 
 void CPU::dumpMemory(uint16_t start, uint16_t size)
