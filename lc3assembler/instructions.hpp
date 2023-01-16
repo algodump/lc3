@@ -1,22 +1,50 @@
 #pragma once
 
+#include <array>
 #include <bitset>
 #include <iostream>
+#include <map>
 #include <set>
 #include <vector>
 
+
 class SupportedInsturctions {
   public:
-    static bool isInstruction(const std::string& maybeInsturction)
+    static bool isAssemblyKeyword(const std::string& maybeInsturction)
     {
-        static std::set<std::string> supportedInstruction = {
-            "ADD",   "AND",   "BR",    "BRn",      "BRzp", "BRz",
-            "BRnp",  "BRp",   "BRnz",  "BRnzp",    "JMP",  "JSR",
-            "JSRR",  "LD",    "LDI",   "LDR",      "LEA",  "NOT",
-            "RET",   "RTI",   "ST",    "STI",      "STR",  "TRAP",
+        static std::set<std::string> supportedInstructions = {
+            "ADD",  "AND",   "BR",  "BRn", "BRzp", "BRz",  "BRnp", "BRp",
+            "BRnz", "BRnzp", "JMP", "JSR", "JSRR", "LD",   "LDI",  "LDR",
+            "LEA",  "NOT",   "RET", "RTI", "ST",   "TRAP", "STI",  "STR"};
+        static std::set<std::string> supportedDirectives = {
             ".ORIG", ".FILL", ".BLKW", ".STRINGZ", ".END"};
-        return supportedInstruction.find(maybeInsturction) !=
-               supportedInstruction.end();
+        auto supprupportedTrapInstructions = trapInstructions();
+        return (supportedInstructions.find(maybeInsturction) !=
+                supportedInstructions.end()) ||
+               (supportedDirectives.find(maybeInsturction) !=
+                supportedDirectives.end()) ||
+               (supprupportedTrapInstructions.find(maybeInsturction) !=
+                supprupportedTrapInstructions.end());
+    }
+
+    static uint8_t getTrapCode(const std::string& trapInstruction)
+    {
+        return trapInstructions().at(trapInstruction);
+    }
+
+    static bool isTrapInstruction(const std::string& trapInstruction)
+    {
+        auto supprupportedTrapInstructions = trapInstructions();
+        return supprupportedTrapInstructions.find(trapInstruction) !=
+               supprupportedTrapInstructions.end();
+    }
+
+    static std::map<std::string, uint8_t> trapInstructions()
+    {
+        static std::map<std::string, uint8_t> supporteTrapInstructions{
+            {"GETS", 0x20}, {"OUT", 0x21},   {"PUTS", 0x22},
+            {"IN", 0x23},   {"PUTSP", 0x24}, {"HALT", 0x25}};
+        return supporteTrapInstructions;
     }
 };
 
@@ -131,7 +159,8 @@ class JsrrInstruction : public Instruction {
 
 class LdInstruction : public Instruction {
   public:
-    LdInstruction(uint8_t destinationRegister, const std::string& m_labelOrOffset);
+    LdInstruction(uint8_t destinationRegister,
+                  const std::string& m_labelOrOffset);
     uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
@@ -142,7 +171,8 @@ class LdInstruction : public Instruction {
 
 class LdiInsturction : public Instruction {
   public:
-    LdiInsturction(uint8_t destinationRegister, const std::string& labelOrOffset);
+    LdiInsturction(uint8_t destinationRegister,
+                   const std::string& labelOrOffset);
     uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 
@@ -167,7 +197,8 @@ class LdrInstruction : public Instruction {
 // TODO: make this class template
 class LeaInstruction : public Instruction {
   public:
-    LeaInstruction(uint8_t destinationRegister, const std::string& m_labelOrOffset);
+    LeaInstruction(uint8_t destinationRegister,
+                   const std::string& m_labelOrOffset);
     uint16_t generate(uint16_t currentPC) override;
     std::string opcode() const override;
 

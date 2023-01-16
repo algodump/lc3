@@ -40,8 +40,9 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
     std::string label;
 
     // NOTE: label is optional
-    iss >> instructionName;
-    if (!SupportedInsturctions::isInstruction(instructionName)) {
+    // FIXME: comment should be part of instruction name
+    std::getline(iss >> std::ws, instructionName, ' ');
+    if (!SupportedInsturctions::isAssemblyKeyword(instructionName)) {
         label = instructionName;
         iss >> instructionName;
     }
@@ -215,6 +216,10 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                     uint8_t trapVector = to_int(operands[0]);
                     tokens.push_back(
                         std::make_shared<TrapInstruction>(trapVector));
+                }
+                else if (SupportedInsturctions::isTrapInstruction(name)) {
+                    tokens.push_back(std::make_shared<TrapInstruction>(
+                        SupportedInsturctions::getTrapCode(name)));
                 }
                 pc++;
             }

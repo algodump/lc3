@@ -293,11 +293,12 @@ TEST(Instructions, StrInstruction)
 
 TEST(Instructions, TrapInstruction)
 {
-    uint8_t trapVector = 0x32;
-    TrapInstruction trapInstruction(trapVector);
-    std::string expectedResult = trapInstruction.opcode() + "0000" +
+    std::string trapString = "PUTS";
+    uint8_t trapVector = SupportedInsturctions::getTrapCode(trapString);
+    TrapInstruction trapInstructionWithTrapString(trapVector);
+    std::string expectedResult = trapInstructionWithTrapString.opcode() + "0000" +
                                  Assembler::toBinaryString<8>(trapVector);
-    ASSERT_EQ(Assembler::toBinaryString<16>(trapInstruction.generate(PC_NOT_USED)),
+    ASSERT_EQ(Assembler::toBinaryString<16>(trapInstructionWithTrapString.generate(PC_NOT_USED)),
               expectedResult);
 }
 
