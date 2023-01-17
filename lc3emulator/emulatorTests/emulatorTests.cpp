@@ -3,8 +3,8 @@
 #include <gtest/gtest.h>
 
 namespace {
-uint16_t RESET_PC = 0;
-uint16_t INIT_PC = 42;
+uint16_t RESET_PC = 0x3000;
+uint16_t INIT_PC = 0x3001;
 
 // copied from lc3assembler/instructions.hpp
 class InstructionBuilder {
@@ -136,7 +136,7 @@ class CPUTests : public ::testing::Test {
         uint16_t offset = 1;
         uint16_t value = 42;
         cpu.m_pc = RESET_PC;
-        cpu.m_memory[offset] = value;
+        cpu.m_memory.write(cpu.m_pc + offset, value);
 
         uint16_t instruction = InstructionBuilder()
                                    .set(InstructionOpCode::LD)
@@ -204,8 +204,8 @@ class CPUTests : public ::testing::Test {
             mem[2] = 0
         */
         cpu.m_pc = RESET_PC;
-        cpu.m_memory[offset] = valueLocation;
-        cpu.m_memory[valueLocation] = value;
+        cpu.m_memory.write(cpu.m_pc + offset, cpu.m_pc + valueLocation);
+        cpu.m_memory.write(cpu.m_pc + valueLocation, value);
 
         uint16_t ldiInstruction = InstructionBuilder()
                                       .set(InstructionOpCode::LDI)
@@ -230,7 +230,7 @@ class CPUTests : public ::testing::Test {
                                       .set(toBinaryString<6>(offset))
                                       .build();
         cpu.m_registers[baseRegisterIndex] = 20;
-        cpu.m_memory[cpu.m_pc + 1] = value;
+        cpu.m_memory.write(cpu.m_pc + 1, value);
 
         cpu.emulate(ldrInstruction);
         ASSERT_EQ(cpu.m_registers[destinationRegisterIndex], value);
@@ -310,7 +310,7 @@ class CPUTests : public ::testing::Test {
                                     .set(baseRegisterNumber)
                                     .set(toBinaryString<6>(offset))
                                     .build();
-        cpu.m_registers[baseRegisterNumber] = 1;
+        cpu.m_registers[baseRegisterNumber] = 0x3000;
         cpu.m_registers[sourceRegisterNumber] = 42;
         cpu.emulate(strInstruction);
         ASSERT_EQ(cpu.m_memory[cpu.m_registers[baseRegisterNumber] + offset],

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "lc3memory.hpp"
+
 #include <array>
 #include <string>
 
@@ -53,11 +55,9 @@ class Instruction {
 
 class CPU {
   public:
-    static constexpr uint16_t MEMORY_CAPACITY =
-        std::numeric_limits<uint16_t>::max();
+
     static constexpr uint8_t NUMBER_OF_REGISTERS = 8;
     using Registers = std::array<int16_t, NUMBER_OF_REGISTERS>;
-    using Memory = std::array<uint16_t, MEMORY_CAPACITY>;
 
   public:
     CPU();
@@ -66,8 +66,8 @@ class CPU {
     StatusCode emulate(uint16_t instruction);
 
   private:
-    void dumpMemory(uint16_t start, uint16_t size);
-    InstructionOpCode getOpCode(uint16_t instruction) const;
+    void dumpMemory(int16_t start, int16_t size);
+    InstructionOpCode getOpCode(int16_t instruction) const;
     void setConditionalCodes(Register destinationRegister);
 
   private:
