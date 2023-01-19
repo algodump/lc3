@@ -26,9 +26,9 @@ enum class InstructionOpCode : uint8_t {
 
 enum class Traps : uint8_t {
     GETC = 0x20,
-    OUT = 0x21,
+    T_OUT = 0x21, // add T_ to avoid name collision 
     PUTS = 0x22,
-    IN = 0x23,
+    T_IN = 0x23,
     PUTSP = 0x24,
     HALT = 0x25
 };
@@ -57,7 +57,7 @@ class CPU {
   public:
 
     static constexpr uint8_t NUMBER_OF_REGISTERS = 8;
-    using Registers = std::array<int16_t, NUMBER_OF_REGISTERS>;
+    using Registers = std::array<uint16_t, NUMBER_OF_REGISTERS>;
 
   public:
     CPU();
@@ -66,8 +66,8 @@ class CPU {
     StatusCode emulate(uint16_t instruction);
 
   private:
-    void dumpMemory(int16_t start, int16_t size);
-    InstructionOpCode getOpCode(int16_t instruction) const;
+    void dumpMemory(uint16_t start, uint16_t size);
+    InstructionOpCode getOpCode(uint16_t instruction) const;
     void setConditionalCodes(Register destinationRegister);
 
   private:

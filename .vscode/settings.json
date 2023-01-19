@@ -85,9 +85,9 @@
     "cmake.buildDirectory": "${workspaceFolder}/build",
     "cmake.debugConfig": {
         // FOR: lc3assembly
-        "args": ["${workspaceFolder}/lc3assembler/tests/playground.lc3"]
+        // "args": ["${workspaceFolder}/lc3assembler/tests/playground.lc3"]
 
         // FOR: lc3emulator
-        // "args": ["${workspaceFolder}/out.lc3"]
+        "args": ["${workspaceFolder}/out.lc3"]
     }
 }
