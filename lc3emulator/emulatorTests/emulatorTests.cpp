@@ -125,7 +125,16 @@ class CPUTests : public ::testing::Test {
         cpu.emulate(instructionBRnN);
         ASSERT_EQ(cpu.m_pc, INIT_PC + offset);
 
-        // TODO: add more test if needed
+        // jump in negative direction, use overflow trick to achive this
+        uint16_t negativeOffset = -2;
+        cpu.m_pc = INIT_PC;
+        uint16_t instructionBR = InstructionBuilder()
+                                       .set(InstructionOpCode::BR)
+                                       .set("100")
+                                       .set(toBinaryString(negativeOffset))
+                                       .build();
+        cpu.emulate(instructionBR);
+        ASSERT_EQ(cpu.m_pc, INIT_PC - 2);
     }
 
     void testLdInstruction()
@@ -263,14 +272,15 @@ class CPUTests : public ::testing::Test {
         cpu.m_registers[sourceRegisterNumber] = 0b1010101010101010;
         cpu.emulate(notInstruction);
         ASSERT_EQ(cpu.m_registers[destinationRegisterNumber],
-                  ~cpu.m_registers[sourceRegisterNumber]);
+                  (uint16_t)~cpu.m_registers[sourceRegisterNumber]);
         ASSERT_EQ(cpu.m_conditionalCodes.P, true);
     }
 
     void testStInstruction()
     {
         Register sourceRegisterNumber = R0;
-        int16_t offset = 412;
+        uint16_t offset = 212;
+        std::string test = toBinaryString(offset);
         uint16_t stInstruction = InstructionBuilder()
                                      .set(InstructionOpCode::ST)
                                      .set(sourceRegisterNumber)

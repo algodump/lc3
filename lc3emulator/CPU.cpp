@@ -22,6 +22,12 @@ uint16_t signExtend(uint16_t offset, uint8_t bitCount)
     return offset;
 }
 
+uint16_t signExtendRetriveBits(uint16_t insturction, uint8_t start,
+                                uint8_t size)
+{
+    return signExtend(retrieveBits(insturction, start, size), size);
+}
+
 Register getDestinationRegisterNumber(uint16_t insturction)
 {
     return static_cast<Register>(retrieveBits(insturction, 11, 3));
@@ -127,14 +133,14 @@ StatusCode CPU::emulate(uint16_t instruction)
         // NOTE: if the offset is negative it'll be a huge number that will 
         //       overflow with PC, therfore wrap it around, so that is how 
         //       PC can move backwards
-        uint16_t offset = signExtend(retrieveBits(instruction, 8, 9), 9);
+        uint16_t labelOffset = signExtendRetriveBits(instruction, 8, 9);
 
         if ((n && m_conditionalCodes.N) || (z && m_conditionalCodes.Z) ||
             (p && m_conditionalCodes.P)) {
-            m_pc += offset;
+            m_pc += labelOffset;
         }
         else if (n == 0 && z == 0 && p == 0) {
-            m_pc += offset;
+            m_pc += labelOffset;
         }
         break;
     }
@@ -147,7 +153,7 @@ StatusCode CPU::emulate(uint16_t instruction)
         m_registers[R7] = m_pc;
         // is JSR
         if ((instruction >> 11) & 0x1) {
-            uint16_t offset = retrieveBits(instruction, 10, 11);
+            uint16_t offset = signExtendRetriveBits(instruction, 10, 11);
             m_pc += offset;
         }
         else {
@@ -160,18 +166,18 @@ StatusCode CPU::emulate(uint16_t instruction)
     case InstructionOpCode::LD: {
         Register destinationRegisterNumber =
             getDestinationRegisterNumber(instruction);
-        uint16_t offset = retrieveBits(instruction, 8, 9);
-        m_registers[destinationRegisterNumber] = m_memory[m_pc + offset];
+        uint16_t labelOffset = signExtendRetriveBits(instruction, 8, 9);
+        m_registers[destinationRegisterNumber] = m_memory[m_pc + labelOffset];
         setConditionalCodes(destinationRegisterNumber);
         break;
     }
     case InstructionOpCode::LDI: {
         Register destinationRegisterNumber =
             getDestinationRegisterNumber(instruction);
-        uint16_t offset = retrieveBits(instruction, 8, 9);
+        uint16_t labelOffset = signExtendRetriveBits(instruction, 8, 9);
 
         m_registers[destinationRegisterNumber] =
-            m_memory[m_memory[m_pc + offset]];
+            m_memory[m_memory[m_pc + labelOffset]];
         setConditionalCodes(destinationRegisterNumber);
         break;
     }
@@ -179,7 +185,7 @@ StatusCode CPU::emulate(uint16_t instruction)
         Register destinationRegisterNumber =
             getDestinationRegisterNumber(instruction);
         Register baseRegisterNumber = getSourceBaseRegisterNumber(instruction);
-        uint16_t immediateValue = retrieveBits(instruction, 5, 6);
+        uint16_t immediateValue = signExtendRetriveBits(instruction, 5, 6);
 
         m_registers[destinationRegisterNumber] =
             m_registers[baseRegisterNumber] + immediateValue;
@@ -189,7 +195,7 @@ StatusCode CPU::emulate(uint16_t instruction)
     case InstructionOpCode::LEA: {
         Register destinationRegisterNumber =
             getDestinationRegisterNumber(instruction);
-        uint16_t labelOffset = retrieveBits(instruction, 8, 9);
+        uint16_t labelOffset = signExtendRetriveBits(instruction, 8, 9);
         m_registers[destinationRegisterNumber] = m_pc + labelOffset;
         setConditionalCodes(destinationRegisterNumber);
         break;
@@ -210,14 +216,14 @@ StatusCode CPU::emulate(uint16_t instruction)
     case InstructionOpCode::ST: {
         Register sourceRegisterNumber =
             getDestinationRegisterNumber(instruction);
-        uint16_t labelOffset = retrieveBits(instruction, 8, 9);
+        uint16_t labelOffset = signExtendRetriveBits(instruction, 8, 9);
         m_memory.write(m_pc + labelOffset, m_registers[sourceRegisterNumber]);
         break;
     }
     case InstructionOpCode::STI: {
         Register sourceRegisterNumber =
             getDestinationRegisterNumber(instruction);
-        uint16_t labelOffset = retrieveBits(instruction, 8, 9);
+        uint16_t labelOffset = signExtendRetriveBits(instruction, 8, 9);
         m_memory.write(m_memory[m_pc + labelOffset],
                        m_registers[sourceRegisterNumber]);
         break;
@@ -226,7 +232,7 @@ StatusCode CPU::emulate(uint16_t instruction)
         Register sourceRegisterNumber =
             getDestinationRegisterNumber(instruction);
         Register baseRegisterNumber = getSourceBaseRegisterNumber(instruction);
-        uint16_t labelOffset = retrieveBits(instruction, 5, 6);
+        uint16_t labelOffset = signExtendRetriveBits(instruction, 5, 6);
         m_memory.write(m_registers[baseRegisterNumber] + labelOffset,
                        m_registers[sourceRegisterNumber]);
         break;
