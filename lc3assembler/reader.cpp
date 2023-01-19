@@ -10,6 +10,11 @@ uint16_t to_int(const std::string& number)
 {
     if (number[0] == '0' && number[1] == 'x') {
         return std::stoi(number, nullptr, 16);
+    } else if (number[0] == 'x' || number[0] == 'X') {
+        std::string stoiComptable = "0" + number;
+        return std::stoi(stoiComptable);
+    } else if (number[0] == '#') {
+        return std::stoi(number.substr(1));
     }
     return std::stoi(number);
 }
@@ -36,15 +41,25 @@ Reader::Reader(const std::string& filename) : m_programName(filename) {}
 InstructionToken Reader::parseInsturction(const std::string& insturction)
 {
     std::istringstream iss(insturction);
-    std::string instructionName;
-    std::string label;
 
+    auto readInstructionName = [&iss]() {
+        std::string line;
+        std::getline(iss >> std::ws, line, ' ');
+        auto space = line.find_first_of(' ');
+        auto comment = line.find_first_of(';');
+        // LABEL ; -> LABEL
+        // LABEL; -> LABEL
+        // LABLE -> LABEL
+        return line.substr(0, std::min(space, comment));
+    };
+
+    std::string instructionName = readInstructionName();
+    std::string label;
     // NOTE: label is optional
     // FIXME: comment should be part of instruction name
-    std::getline(iss >> std::ws, instructionName, ' ');
     if (!SupportedInsturctions::isAssemblyKeyword(instructionName)) {
         label = instructionName;
-        iss >> instructionName;
+        instructionName = readInstructionName();
     }
 
     // TODO: make this vector of ints or someting
