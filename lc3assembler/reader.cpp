@@ -12,7 +12,7 @@ uint16_t to_int(const std::string& number)
         return std::stoi(number, nullptr, 16);
     } else if (number[0] == 'x' || number[0] == 'X') {
         std::string stoiComptable = "0" + number;
-        return std::stoi(stoiComptable);
+        return std::stoi(stoiComptable, nullptr,  16);
     } else if (number[0] == '#') {
         return std::stoi(number.substr(1));
     }
@@ -56,7 +56,6 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
     std::string instructionName = readInstructionName();
     std::string label;
     // NOTE: label is optional
-    // FIXME: comment should be part of instruction name
     if (!SupportedInsturctions::isAssemblyKeyword(instructionName)) {
         label = instructionName;
         instructionName = readInstructionName();
@@ -65,7 +64,7 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
     // TODO: make this vector of ints or someting
     std::vector<std::string> operands;
     for (std::string part; std::getline(iss >> std::ws, part, ',');) {
-        if (auto commentBeing = part.find_first_of(";");
+        if (auto commentBeing = std::min(part.find_first_of(";"), part.find_first_of(' '));
             commentBeing != std::string::npos && part[0] != '"') {
             operands.push_back(part.substr(0, commentBeing));
             break;
