@@ -26,9 +26,6 @@ Assembler::Assembler(std::vector<std::shared_ptr<Instruction>>& instructions)
 
 void Assembler::gnenerate(Writer& writer)
 {
-    assert(dynamic_cast<OriginDerective*>((m_instructions.front()).get()));
-    assert(dynamic_cast<EndDerective*>((m_instructions.back()).get()));
-
     uint16_t pc = 0;
 
     for (auto& instruction : m_instructions) {

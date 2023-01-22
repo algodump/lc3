@@ -1,56 +1,61 @@
 #include "reader.hpp"
 #include "assembler.hpp"
 
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
 namespace {
-uint16_t to_int(const std::string& number)
+void checkOperands(const std::string& currentLine,
+                   uint8_t expectedNumberOfOperands,
+                   uint8_t actualNumberOfOperands)
 {
-    if (number[0] == '0' && number[1] == 'x') {
-        return std::stoi(number, nullptr, 16);
-    } else if (number[0] == 'x' || number[0] == 'X') {
+    if (expectedNumberOfOperands != actualNumberOfOperands) {
+        throw std::runtime_error(std::format(
+            "Wrong number of operands for `{}` expected {} operands, got {}",
+            currentLine, expectedNumberOfOperands, actualNumberOfOperands));
+    }
+}
+
+uint16_t retrieveNumber(const std::string& number)
+{
+    if (number[0] == 'x' || number[0] == 'X') {
         std::string stoiComptable = "0" + number;
-        return std::stoi(stoiComptable, nullptr,  16);
-    } else if (number[0] == '#') {
+        return std::stoi(stoiComptable, nullptr, 16);
+    }
+    else if (number[0] == '#') {
         return std::stoi(number.substr(1));
     }
-    return std::stoi(number);
+    else {
+        throw std::runtime_error(std::format(
+            "Wrong number format: number should start form `#` or `x`"));
+    }
 }
 
 uint8_t retrieveRegisterNumber(const std::string& lc3register)
 {
-    if (!lc3register.empty() && lc3register[0] == 'R') {
+    if (lc3register.size() == 2 && lc3register[0] == 'R' &&
+        ((lc3register[1] - '0') >= 0) && ((lc3register[1] - '0') <= 7)) {
         return lc3register[1] - '0';
     }
-    return std::numeric_limits<uint8_t>::max();
+    else {
+        throw std::runtime_error(
+            std::format("Wrong register format: got: {}, expected: {}",
+                        lc3register, "R{0, 1, 2, 3, 4, 5, 6, 7}"));
+    }
 }
-
-uint8_t retriveImmediateValue(const std::string& immediateValue)
-{
-    // TODO: check for overflow
-    assert(immediateValue[0] == '#');
-    return std::stoi(immediateValue.substr(1));
-}
-
 } // namespace
 
 Reader::Reader(const std::string& filename) : m_programName(filename) {}
 
 InstructionToken Reader::parseInsturction(const std::string& insturction)
 {
-    std::istringstream iss(insturction);
-
+    std::istringstream iss(insturction);   
     auto readInstructionName = [&iss]() {
-        std::string line;
-        std::getline(iss >> std::ws, line, ' ');
-        auto space = line.find_first_of(' ');
-        auto comment = line.find_first_of(';');
-        // LABEL ; -> LABEL
-        // LABEL; -> LABEL
-        // LABLE -> LABEL
-        return line.substr(0, std::min(space, comment));
+        std::string instructionName;
+        std::getline(iss >> std::ws, instructionName, ' ');
+        return instructionName;
     };
 
     std::string instructionName = readInstructionName();
@@ -62,18 +67,17 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
     }
 
     // TODO: make this vector of ints or someting
-    std::vector<std::string> operands;
-    for (std::string part; std::getline(iss >> std::ws, part, ',');) {
-        if (auto commentBeing = std::min(part.find_first_of(";"), part.find_first_of(' '));
-            commentBeing != std::string::npos && part[0] != '"') {
-            operands.push_back(part.substr(0, commentBeing));
+    std::vector<std::string> operands;       
+    for (std::string operand; std::getline(iss >> std::ws, operand, ',');) {
+        if (!operand.empty() && operand[0] != '"') {
+            // NOTE: remove all of the trailing spaces if any
+            operands.push_back(operand.substr(0, operand.find_first_of(' ')));
+        }
+        else if (!operand.empty() && operand[0] == '"') {
+            operands.push_back(
+                operand.substr(1, operand.find_first_of('"', 1) - 1));
             break;
         }
-        else if (!part.empty() && part[0] == '"') {
-            operands.push_back(part.substr(1, part.find_first_of('"', 1) - 1));
-            break;
-        }
-        operands.push_back(part);
     }
     return InstructionToken{
         .label = label, .name = instructionName, .operands = operands};
@@ -82,162 +86,212 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
 std::vector<std::shared_ptr<Instruction>> Reader::readFile()
 {
     std::vector<std::shared_ptr<Instruction>> tokens;
-    std::ifstream ifs(m_programName);
+    try {
+        std::ifstream ifs(m_programName);
+        if (!ifs.is_open()) {
+            std::runtime_error(
+                std::format("Couldn't open file: `{}`", m_programName));
+        }
 
-    uint16_t pc = 0;
-    for (std::string currentLine; std::getline(ifs >> std::ws, currentLine);) {
-        // skip comments
-        if (!currentLine.empty() && currentLine[0] != ';') {
-            auto&& [label, name, operands] = parseInsturction(currentLine);
-            // add labels to the symbol table
-            if (!label.empty()) {
-                SymbolTable::the().add(label, pc);
-            }
+        uint16_t pc = 0;
+        for (std::string currentLine;
+             std::getline(ifs >> std::ws, currentLine);) {
+            // NOTE: skip lines that start with comments
+            if (!currentLine.empty() && currentLine[0] != ';') {
+                std::string currentLineWithoutComment = currentLine.substr(0, currentLine.find(';'));
+                auto&& [label, name, operands] = parseInsturction(currentLineWithoutComment);
+                // add labels to the symbol table
+                if (!label.empty()) {
+                    SymbolTable::the().add(label, pc);
+                }
 
-            // parse assembly directives
-            if (name[0] == '.') {
-                if (name == ".ORIG") {
-                    tokens.push_back(
-                        std::make_shared<OriginDerective>(to_int(operands[0])));
-                }
-                else if (name == ".FILL") {
-                    tokens.push_back(
-                        std::make_shared<FillDerective>(to_int(operands[0])));
-                }
-                else if (name == ".BLKW") {
-                    tokens.push_back(
-                        std::make_shared<BlkwDerective>(to_int(operands[0])));
-                }
-                else if (name == ".STRINGZ") {
-                    tokens.push_back(
-                        std::make_shared<StringDerective>(operands[0]));
-                }
-                else if (name == ".END") {
-                    tokens.push_back(std::make_shared<EndDerective>());
-                }
-            } else {
-                // parse normal instructions
-                if (name == "ADD" || name == "AND") {
-                    uint8_t destinationRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    uint8_t source1Register =
-                        retrieveRegisterNumber(operands[1]);
-                    bool isImmediate = Assembler::isImmediate(operands[2]);
-                    uint8_t source2RegisterOrImmediate =
-                        isImmediate ? retriveImmediateValue(operands[2])
-                                    : retrieveRegisterNumber(operands[2]);
-                    if (name == "ADD") {
-                        tokens.push_back(std::make_shared<AddInstruction>(
-                            destinationRegister, source1Register,
-                            source2RegisterOrImmediate, isImmediate));
+                // parse assembly directives
+                if (name[0] == '.') {
+                    if (name == ".ORIG") {
+                        checkOperands(currentLine, 1, operands.size());
+                        tokens.push_back(std::make_shared<OriginDerective>(
+                            retrieveNumber(operands[0])));
                     }
-                    else {
-                        tokens.push_back(std::make_shared<AndInstruction>(
-                            destinationRegister, source1Register,
-                            source2RegisterOrImmediate, isImmediate));
+                    else if (name == ".FILL") {
+                        checkOperands(currentLine, 1, operands.size());
+                        tokens.push_back(std::make_shared<FillDerective>(
+                            retrieveNumber(operands[0])));
+                    }
+                    else if (name == ".BLKW") {
+                        checkOperands(currentLine, 1, operands.size());
+                        tokens.push_back(std::make_shared<BlkwDerective>(
+                            retrieveNumber(operands[0])));
+                    }
+                    else if (name == ".STRINGZ") {
+                        checkOperands(currentLine, 1, operands.size());
+                        tokens.push_back(
+                            std::make_shared<StringDerective>(operands[0]));
+                    }
+                    else if (name == ".END") {
+                        checkOperands(currentLine, 0, operands.size());
+                        tokens.push_back(std::make_shared<EndDerective>());
                     }
                 }
-                else if (name.starts_with("BR")) {
-                    // This instruction comes in 8 falvours)
-                    // BRn BRzp BRz BRnp BRp BRnz BR BRnzp
-                    std::string conditionalCodes = name.substr(2);
-                    std::string labelToBranch = operands[0];
-                    tokens.push_back(std::make_shared<BrInstruction>(
-                        conditionalCodes, labelToBranch));
+                else {
+                    // parse normal instructions
+                    if (name == "ADD" || name == "AND") {
+                        checkOperands(currentLine, 3, operands.size());
+                        uint8_t destinationRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        uint8_t source1Register =
+                            retrieveRegisterNumber(operands[1]);
+                        bool isImmediate = Assembler::isImmediate(operands[2]);
+                        uint8_t source2RegisterOrImmediate =
+                            isImmediate ? retrieveNumber(operands[2])
+                                        : retrieveRegisterNumber(operands[2]);
+                        if (name == "ADD") {
+                            tokens.push_back(std::make_shared<AddInstruction>(
+                                destinationRegister, source1Register,
+                                source2RegisterOrImmediate, isImmediate));
+                        }
+                        else {
+                            tokens.push_back(std::make_shared<AndInstruction>(
+                                destinationRegister, source1Register,
+                                source2RegisterOrImmediate, isImmediate));
+                        }
+                    }
+                    else if (name.starts_with("BR")) {
+                        // This instruction comes in 8 falvours)
+                        // BRn BRzp BRz BRnp BRp BRnz BR BRnzp
+                        checkOperands(currentLine, 1, operands.size());
+                        std::string conditionalCodes = name.substr(2);
+                        std::string labelToBranch = operands[0];
+                        tokens.push_back(std::make_shared<BrInstruction>(
+                            conditionalCodes, labelToBranch));
+                    }
+                    else if (name == "JMP") {
+                        checkOperands(currentLine, 1, operands.size());
+                        uint8_t baseRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        tokens.push_back(
+                            std::make_shared<JmpInsturction>(baseRegister));
+                    }
+                    else if (name == "RET") {
+                        checkOperands(currentLine, 0, operands.size());
+                        tokens.push_back(std::make_shared<RetInstruction>());
+                    }
+                    else if (name == "JSR") {
+                        checkOperands(currentLine, 1, operands.size());
+                        auto labelOrImmediateOffset = operands[0];
+                        tokens.push_back(std::make_shared<JsrInstruction>(
+                            labelOrImmediateOffset));
+                    }
+                    else if (name == "JSRR") {
+                        checkOperands(currentLine, 1, operands.size());
+                        uint8_t baseRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        tokens.push_back(
+                            std::make_shared<JsrrInstruction>(baseRegister));
+                    }
+                    else if (name == "LD") {
+                        checkOperands(currentLine, 2, operands.size());
+                        uint8_t destinationRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        std::string labelOrImmediateOffset = operands[1];
+                        tokens.push_back(std::make_shared<LdInstruction>(
+                            destinationRegister, labelOrImmediateOffset));
+                    }
+                    else if (name == "LDI") {
+                        checkOperands(currentLine, 2, operands.size());
+                        uint8_t destinationRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        std::string labelOrImmediateOffset = operands[1];
+                        tokens.push_back(std::make_shared<LdiInsturction>(
+                            destinationRegister, labelOrImmediateOffset));
+                    }
+                    else if (name == "LDR") {
+                        checkOperands(currentLine, 3, operands.size());
+                        uint8_t destinationRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        uint8_t baseRegister =
+                            retrieveRegisterNumber(operands[1]);
+                        std::string labelOrImmediateOffset = operands[2];
+                        tokens.push_back(std::make_shared<LdrInstruction>(
+                            baseRegister, destinationRegister,
+                            labelOrImmediateOffset));
+                    }
+                    else if (name == "LEA") {
+                        checkOperands(currentLine, 2, operands.size());
+                        uint8_t destinationRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        std::string labelOrImmediateOffset = operands[1];
+                        tokens.push_back(std::make_shared<LeaInstruction>(
+                            destinationRegister, labelOrImmediateOffset));
+                    }
+                    else if (name == "ST") {
+                        checkOperands(currentLine, 2, operands.size());
+                        uint8_t sourceRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        std::string labelOrImmediateOffset = operands[1];
+                        tokens.push_back(std::make_shared<StInstruction>(
+                            sourceRegister, labelOrImmediateOffset));
+                    }
+                    else if (name == "STI") {
+                        checkOperands(currentLine, 2, operands.size());
+                        uint8_t sourceRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        std::string labelOrImmediateOffset = operands[1];
+                        tokens.push_back(std::make_shared<StiInstruction>(
+                            sourceRegister, labelOrImmediateOffset));
+                    }
+                    else if (name == "NOT") {
+                        checkOperands(currentLine, 2, operands.size());
+                        uint8_t destinationRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        uint8_t sourceRigistere =
+                            retrieveRegisterNumber(operands[1]);
+                        tokens.push_back(std::make_shared<NotInstruction>(
+                            destinationRegister, sourceRigistere));
+                    }
+                    else if (name == "RTI") {
+                        checkOperands(currentLine, 0, operands.size());
+                        tokens.push_back(std::make_shared<RtiInstruction>());
+                    }
+                    else if (name == "STR") {
+                        checkOperands(currentLine, 3, operands.size());
+                        uint8_t sourceRegister =
+                            retrieveRegisterNumber(operands[0]);
+                        uint8_t baseRegister =
+                            retrieveRegisterNumber(operands[1]);
+                        std::string labelOrImmediateOffset = operands[2];
+                        tokens.push_back(std::make_shared<StrInstruction>(
+                            sourceRegister, baseRegister,
+                            labelOrImmediateOffset));
+                    }
+                    else if (name == "TRAP") {
+                        checkOperands(currentLine, 1, operands.size());
+                        uint8_t trapVector = retrieveNumber(operands[0]);
+                        tokens.push_back(
+                            std::make_shared<TrapInstruction>(trapVector));
+                    }
+                    else if (SupportedInsturctions::isTrapInstruction(name)) {
+                        checkOperands(currentLine, 0, operands.size());
+                        tokens.push_back(std::make_shared<TrapInstruction>(
+                            SupportedInsturctions::getTrapCode(name)));
+                    }
+                    else if (!name.empty() && label.empty()) {
+                        throw std::runtime_error(
+                            std::format("Unknown instruction: {}", name));
+                    }
+                    pc++;
                 }
-                else if (name == "JMP") {
-                    uint8_t baseRegister = retrieveRegisterNumber(operands[0]);
-                    tokens.push_back(
-                        std::make_shared<JmpInsturction>(baseRegister));
-                }
-                else if (name == "RET") {
-                    tokens.push_back(std::make_shared<RetInstruction>());
-                }
-                else if (name == "JSR") {
-                    auto labelOrImmediateOffset = operands[0];
-                    tokens.push_back(std::make_shared<JsrInstruction>(
-                        labelOrImmediateOffset));
-                }
-                else if (name == "JSRR") {
-                    uint8_t baseRegister = retrieveRegisterNumber(operands[0]);
-                    tokens.push_back(
-                        std::make_shared<JsrrInstruction>(baseRegister));
-                }
-                else if (name == "LD") {
-                    uint8_t destinationRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    std::string labelOrImmediateOffset = operands[1];
-                    tokens.push_back(std::make_shared<LdInstruction>(
-                        destinationRegister, labelOrImmediateOffset));
-                }
-                else if (name == "LDI") {
-                    uint8_t destinationRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    std::string labelOrImmediateOffset = operands[1];
-                    tokens.push_back(std::make_shared<LdiInsturction>(
-                        destinationRegister, labelOrImmediateOffset));
-                }
-                else if (name == "LDR") {
-                    uint8_t destinationRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    uint8_t baseRegister = retrieveRegisterNumber(operands[1]);
-                    std::string labelOrImmediateOffset = operands[2];
-                    tokens.push_back(std::make_shared<LdrInstruction>(
-                        baseRegister, destinationRegister,
-                        labelOrImmediateOffset));
-                }
-                else if (name == "LEA") {
-                    uint8_t destinationRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    std::string labelOrImmediateOffset = operands[1];
-                    tokens.push_back(std::make_shared<LeaInstruction>(
-                        destinationRegister, labelOrImmediateOffset));
-                }
-                else if (name == "ST") {
-                    uint8_t sourceRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    std::string labelOrImmediateOffset = operands[1];
-                    tokens.push_back(std::make_shared<StInstruction>(
-                        sourceRegister, labelOrImmediateOffset));
-                }
-                else if (name == "STI") {
-                    uint8_t sourceRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    std::string labelOrImmediateOffset = operands[1];
-                    tokens.push_back(std::make_shared<StiInstruction>(
-                        sourceRegister, labelOrImmediateOffset));
-                }
-                else if (name == "NOT") {
-                    uint8_t destinationRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    uint8_t sourceRigistere =
-                        retrieveRegisterNumber(operands[1]);
-                    tokens.push_back(std::make_shared<NotInstruction>(
-                        destinationRegister, sourceRigistere));
-                }
-                else if (name == "RTI") {
-                    tokens.push_back(std::make_shared<RtiInstruction>());
-                }
-                else if (name == "STR") {
-                    uint8_t sourceRegister =
-                        retrieveRegisterNumber(operands[0]);
-                    uint8_t baseRegister = retrieveRegisterNumber(operands[1]);
-                    std::string labelOrImmediateOffset = operands[2];
-                    tokens.push_back(std::make_shared<StrInstruction>(
-                        sourceRegister, baseRegister, labelOrImmediateOffset));
-                }
-                else if (name == "TRAP") {
-                    uint8_t trapVector = to_int(operands[0]);
-                    tokens.push_back(
-                        std::make_shared<TrapInstruction>(trapVector));
-                }
-                else if (SupportedInsturctions::isTrapInstruction(name)) {
-                    tokens.push_back(std::make_shared<TrapInstruction>(
-                        SupportedInsturctions::getTrapCode(name)));
-                }
-                pc++;
             }
         }
+        if (!dynamic_cast<OriginDerective*>((tokens.front()).get()) ||
+            !dynamic_cast<EndDerective*>((tokens.back()).get())) {
+            throw std::runtime_error("Every lc3 assembly program should start "
+                                     "with .ORIG and end with .END");
+        }
     }
+
+    catch (...) {
+        throw;
+    }
+
     return tokens;
 }
