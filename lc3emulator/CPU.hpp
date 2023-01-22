@@ -33,25 +33,9 @@ enum class Traps : uint8_t {
     HALT = 0x25
 };
 
-// TODO: add to string conversion
-enum class StatusCode : uint8_t {
-    SUCCESS,
-    HALTED,
-};
-
 enum Register {
     R0 = 0, R1 = 1, R2 = 2, R3 = 3, R4 = 4, R5 = 5, R6 = 6, R7 = 7
 };
-
-class Instruction {
-  public:
-    Instruction(uint16_t instruction) : m_instruction(instruction) {}
-    uint16_t getBits(uint8_t from, uint8_t to);
-
-  private:
-    uint16_t m_instruction;
-};
-
 
 class CPU {
   public:
@@ -61,9 +45,9 @@ class CPU {
 
   public:
     CPU();
-    bool load(const std::string& fileToRun);
-    StatusCode emulate();
-    StatusCode emulate(uint16_t instruction);
+    void load(const std::string& fileToRun);
+    void emulate();
+    void emulate(uint16_t instruction);
 
   private:
     void dumpMemory(uint16_t start, uint16_t size);

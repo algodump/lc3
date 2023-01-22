@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <conio.h>
 #include <cstdint>
+#include <format>
 #include <signal.h>
 
 #undef max
@@ -43,8 +44,9 @@ void handle_interrupt(int signal)
 
 class Memory {
   private:
-    static constexpr uint16_t START_OF_USER_PROGRAMS = 0x3000;
-    static constexpr uint16_t LC3_MEMORY_CAPCITY = std::numeric_limits<uint16_t>::max();
+    static constexpr uint16_t START_OF_USER_DEFINED_PROGRAMS = 0x3000;
+    static constexpr uint16_t LC3_MEMORY_CAPCITY =
+        std::numeric_limits<uint16_t>::max();
     static constexpr uint16_t KEYBOARD_STATUS_REGISTER = 0xFE00;
     static constexpr uint16_t KEYBOARD_DATA_REGISTER = 0xFE02;
     using L3Memory = std::array<uint16_t, LC3_MEMORY_CAPCITY>;
@@ -63,15 +65,19 @@ class Memory {
                 m_memory[KEYBOARD_STATUS_REGISTER] = 0;
             }
         }
-        // assert(address >= START_OF_USER_PROGRAMS && address <=
-        // MEMORY_CAPACITY);
+        else if (address < START_OF_USER_DEFINED_PROGRAMS) {
+            throw std::runtime_error(
+                std::format("Illegal memory access at address: {}", address));
+        }
         return m_memory[address];
     }
 
     void write(uint16_t address, uint16_t value)
     {
-        // assert(address >= START_OF_USER_PROGRAMS && address <=
-        // MEMORY_CAPACITY);
+        if (address < START_OF_USER_DEFINED_PROGRAMS) {
+            throw std::runtime_error(
+                std::format("Illegal memory write at address: {}", address));
+        }
         m_memory[address] = value;
     }
 

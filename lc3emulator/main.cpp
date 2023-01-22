@@ -1,3 +1,4 @@
+#include <exception>
 #include <iostream>
 
 #include "CPU.hpp"
@@ -12,11 +13,12 @@ int main(int argc, char* argv[])
     }
 
     std::string fileToRun = argv[1];
-    CPU cpu;
-    if (cpu.load(fileToRun)) {
+    try {
+        CPU cpu;
+        cpu.load(fileToRun);
         cpu.emulate();
     }
-    else {
-        std::cout << "ERROR: Couldn't load file: " << fileToRun << std::endl;
+    catch (std::exception e) {
+        std::cout << "LC3 EMULATOR ERROR: " << e.what() << std::endl;
     }
 }

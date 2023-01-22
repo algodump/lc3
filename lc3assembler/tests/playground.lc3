@@ -1,5 +1,90 @@
 .ORIG x3000
-LABLE LD R0, NOTHER;
-NOTHER ADD R0, R1, R2 ;
+;----------------------------------------------------------
+; Example: Reverse the characters of an in-memory string
+;
+; REGISTER USAGE:
+; R0 address of start of string, which will be incremented as we swap
+; R1 address of end of stri ng, which will be decremented as we swap
+; R2 temp character holder
+; R3 temp character holder
+; R4 address math: R0 - R1 (when will this step result in overflow??!)
+;------------------------------------------------------------
+
+; pre-loop set up
+
+  LEA R0, MY_STRING; get the address of the first charcter in the string
+  ADD R1, R0, #0; set R1 to be equal to R0 (start of string)
+
+; Now we will increment R1 gradually until we find the null character that terminates the string...
+; (.STRINGZ will always use a null character to indicate the end of a string)
+; Note that since the NULL character has a value of "zero" we can simply use a BRz check to
+; branch if/when the null character is loaded
+
+; FIND THE ADDRESS OF THE LAST CHARACTER  
+
+LOOP_START; 
+    LDR R2, R1, #1; sets the CCR based on the value we store in R2 from the address (R1 + 1) 
+    BRz LOOP_END; if the character we grabbed in R2 was null (zero), then R1 is at the the last character of the string
+    ; above: note that the #1 offset we used on the LDR statement reached 'one memory position farther than R1' in the string to check for the null character
+    ;    so R1 is actually the address of the last character, NOT the address of the null character.
+    ;    Be sure you understand this difference!
+    
+    ; else if we did not jump, then the R1 address is not at the last character yet
+    
+    ADD R1, R1, #1; add one to the R1 'pointer' to move to the next character in the string
+    BR LOOP_START;  and loop around again (unconditional branch)
+  
+  
+LOOP_END; jump here from above if we detected a null character at address (R1+1).
+
+
+  ; at this point R1 should be pointing to our last character...
+  ;   and R0 is still the first character's address
+  ;   we are ready to begin our character swapping
+
+; START SWAPPING
+
+SWAP_START
+  LDR R2, R0, #0; copy the character from the 'front' of the string to the the temp R2 register
+  LDR R3, R1, #0; copy the character from the 'rear' of the string to the temp R3 register
+  STR R2, R1, #0; store the character from register R2 at the R1 location (zero offset)
+  STR R3, R0, #0; store the character from register R3 at the R0 location (zero offset)
+  
+  ADD R0, R0, #1; increment the 'front' pointer by 1 memory location for the next loop
+  ADD R1, R1, #-1; DECREMENT the 'end' pointer by 1 memory location for the next loop
+  
+  
+  ; if R0 is greater than, or equal to R1, then our tracking pointers have 'passed' eachother or are on the same memory location
+  ; in either case, we are done swapping... so jump out of the loop.
+  ; BTW - We could subtract R1-R0, but we'd need to change our branch conditional.... Do you know what it would be?
+  ; To evaluate the above conditional we will need to subtract the R1 address from the R0 address: R4 = R0 - R1
+  ; Given R4 = R0 - R1, if the result is zero or positive, then R0 is at or beyond R1
+  ; First, we will need to negate R1... we'll use R2 to do that, as R2 will be reset at the top of the loop anyway
+  
+  NOT R2, R1; complement R1 and store in R2
+  ADD R2, R2, #1; add one to complete our 'negate' recipe
+  
+  ; now we have -R1 store in R2
+  
+  ADD R4, R0, R2; finish R4 = R0 - R1
+  
+  BRzp SWAP_END;  branch if zero or positive
+  
+  BR SWAP_START; else repeat
+
+
+SWAP_END
+
+LEA R0, MY_STRING; get the starting address again
+PUTS; print the final string
+
+
+HALT
+
+MY_STRING .STRINGZ "abcdef"
+NULL_CHAR .FILL #0; the terminating character found at the end of every .STRINGZ string
+
+
+
 .END
         
