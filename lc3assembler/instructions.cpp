@@ -5,15 +5,6 @@
 #include <string>
 
 namespace {
-// TODO: move this to the Reader
-std::string getRegister(const std::string& lc3register)
-{
-    if (!lc3register.empty() && lc3register[0] == 'R') {
-        return Assembler::toBinaryString<3>(lc3register[1] - '0');
-    }
-    return lc3register;
-}
-
 std::string convertRegisterToBinary(uint8_t lc3register)
 {
     return Assembler::toBinaryString<3>(lc3register);
@@ -40,7 +31,6 @@ InstructionBuilder& InstructionBuilder::set(char bit)
 
 uint16_t InstructionBuilder::instruction() const
 {
-    std::cout << "GENERATED INSTRUCTION: " << m_instruction << std::endl;
     return m_instruction.to_ulong();
 }
 

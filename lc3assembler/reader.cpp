@@ -212,7 +212,7 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                             retrieveRegisterNumber(operands[1]);
                         std::string labelOrImmediateOffset = operands[2];
                         tokens.push_back(std::make_shared<LdrInstruction>(
-                            baseRegister, destinationRegister,
+                            destinationRegister, baseRegister,
                             labelOrImmediateOffset));
                     }
                     else if (name == "LEA") {
@@ -278,7 +278,9 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                         throw std::runtime_error(
                             std::format("Unknown instruction: {}", name));
                     }
-                    pc++;
+                    if (!name.empty()) {
+                        pc++;
+                    }
                 }
             }
         }
