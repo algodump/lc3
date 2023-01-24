@@ -28,7 +28,7 @@ class InstructionBuilder {
 
     InstructionBuilder& set(InstructionOpCode instructionOpCode)
     {
-        for (auto bit : std::bitset<4>(static_cast<int8_t>(instructionOpCode))
+        for (auto bit : std::bitset<4>(static_cast<uint8_t>(instructionOpCode))
                             .to_string()) {
             m_instruction.set(m_bitPointer--, (bit - '0') == 1);
         }
@@ -230,7 +230,7 @@ class CPUTests : public ::testing::Test {
     {
         Register destinationRegisterIndex = R2;
         Register baseRegisterIndex = R1;
-        int16_t offset = 11;
+        uint16_t offset = 11;
         uint16_t value = 31;
         uint16_t ldrInstruction = InstructionBuilder()
                                       .set(InstructionOpCode::LDR)
@@ -238,8 +238,9 @@ class CPUTests : public ::testing::Test {
                                       .set(baseRegisterIndex)
                                       .set(toBinaryString<6>(offset))
                                       .build();
-        cpu.m_registers[baseRegisterIndex] = 20;
-        cpu.m_memory.write(cpu.m_pc + 1, value);
+        cpu.m_pc = RESET_PC;                             
+        cpu.m_registers[baseRegisterIndex] = cpu.m_pc;
+        cpu.m_memory.write(cpu.m_pc + offset, value);
 
         cpu.emulate(ldrInstruction);
         ASSERT_EQ(cpu.m_registers[destinationRegisterIndex], value);
@@ -296,7 +297,7 @@ class CPUTests : public ::testing::Test {
     void testStiInstruction()
     {
         Register sourceRegisterNumber = R0;
-        int16_t offset = 412;
+        uint16_t offset = 31;
         uint16_t stInstruction = InstructionBuilder()
                                      .set(InstructionOpCode::STI)
                                      .set(sourceRegisterNumber)
@@ -304,8 +305,9 @@ class CPUTests : public ::testing::Test {
                                      .build();
         cpu.m_pc = RESET_PC;
         cpu.m_registers[sourceRegisterNumber] = 1024;
+        cpu.m_memory.write(cpu.m_pc + offset, cpu.m_pc + 2);
         cpu.emulate(stInstruction);
-        ASSERT_EQ(cpu.m_memory[cpu.m_memory[cpu.m_pc + offset]],
+        ASSERT_EQ(cpu.m_memory[cpu.m_pc + 2],
                   cpu.m_registers[sourceRegisterNumber]);
     }
 
