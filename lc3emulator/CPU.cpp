@@ -40,7 +40,7 @@ Register getSourceBaseRegisterNumber(uint16_t insturction)
 }
 } // namespace
 
-CPU::CPU() : m_conditionalCodes{false, false, false} {}
+CPU::CPU() : m_registers{}, m_conditionalCodes{false, false, false} {}
 
 InstructionOpCode CPU::getOpCode(uint16_t instruction) const
 {
@@ -51,14 +51,14 @@ void CPU::setConditionalCodes(Register destinationRegisterNumber)
 {
     auto destinationRegisterNumberValue =
         m_registers[destinationRegisterNumber];
-    if (destinationRegisterNumberValue < 0) {
-        m_conditionalCodes.N = true;
+    if (destinationRegisterNumberValue >> 15) {
+        m_conditionalCodes = {.N = true, .Z = false, .P = false};
     }
     else if (destinationRegisterNumberValue == 0) {
-        m_conditionalCodes.Z = true;
+        m_conditionalCodes = {.N = false, .Z = true, .P = false};
     }
     else {
-        m_conditionalCodes.P = true;
+        m_conditionalCodes = {.N = true, .Z = false, .P = true};
     }
 }
 
@@ -81,7 +81,6 @@ void CPU::load(const std::string& fileToRun)
             m_memory.write(origin++, data);
         }
     }
-    dumpMemory(m_pc, 5);
 }
 
 void CPU::emulate(uint16_t instruction)
@@ -95,7 +94,7 @@ void CPU::emulate(uint16_t instruction)
             Register sourceRegisterNumber =
                 getSourceBaseRegisterNumber(instruction);
             if ((instruction >> 5) & 0x1) {
-                uint8_t immediateValue = retrieveBits(instruction, 4, 5);
+                uint16_t immediateValue = signExtendRetriveBits(instruction, 4, 5);
                 m_registers[destinationRegisterNumber] =
                     m_registers[sourceRegisterNumber] + immediateValue;
             }
@@ -106,7 +105,7 @@ void CPU::emulate(uint16_t instruction)
                     m_registers[sourceRegisterNumber] +
                     m_registers[secondSource];
             }
-            setConditionalCodes(sourceRegisterNumber);
+            setConditionalCodes(destinationRegisterNumber);
             break;
         }
         case InstructionOpCode::AND: {
@@ -115,7 +114,7 @@ void CPU::emulate(uint16_t instruction)
             Register sourceRegisterNumber =
                 getSourceBaseRegisterNumber(instruction);
             if ((instruction >> 5) & 0x1) {
-                uint8_t immediateValue = retrieveBits(instruction, 4, 5);
+                uint16_t immediateValue = signExtendRetriveBits(instruction, 4, 5);
                 m_registers[destinationRegisterNumber] =
                     m_registers[sourceRegisterNumber] & immediateValue;
             }
@@ -195,7 +194,7 @@ void CPU::emulate(uint16_t instruction)
             uint16_t immediateValue = signExtendRetriveBits(instruction, 5, 6);
 
             m_registers[destinationRegisterNumber] =
-                m_registers[baseRegisterNumber] + immediateValue;
+                m_memory[m_registers[baseRegisterNumber] + immediateValue];
             setConditionalCodes(destinationRegisterNumber);
             break;
         }
@@ -266,7 +265,6 @@ void CPU::emulate(uint16_t instruction)
                 while (m_memory[stringPointer] != 0) {
                     out += m_memory[stringPointer++];
                 }
-                m_pc += out.size();
                 std::cout << out << '\n';
                 break;
             }

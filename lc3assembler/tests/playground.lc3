@@ -1,19 +1,6 @@
 .ORIG x3000
-;----------------------------------------------------------
-; Example: Reverse the characters of an in-memory string
-;
-; REGISTER USAGE:
-; R0 address of start of string, which will be incremented as we swap
-; R1 address of end of stri ng, which will be decremented as we swap
-; R2 temp character holder
-; R3 temp character holder
-; R4 address math: R0 - R1 (when will this step result in overflow??!)
-;------------------------------------------------------------
-
-; pre-loop set up
-
-  LEA R0, MY_STRING; get the address of the first charcter in the string
-  ADD R1, R0, #0; set R1 to be equal to R0 (start of string)
+LEA R0, MY_STRING; get the address of the first charcter in the string
+ADD R1, R0, #0; set R1 to be equal to R0 (start of string)
 
 ; Now we will increment R1 gradually until we find the null character that terminates the string...
 ; (.STRINGZ will always use a null character to indicate the end of a string)
