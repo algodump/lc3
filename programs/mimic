@@ -1,0 +1,13 @@
+.ORIG x3000 ; code start
+;----------------------------------------
+; Example: Mimic 1
+;----------------------------------------
+START ; just a label
+IN ; prompt, wait, and echo 1 character
+LD R0, NEWLINE ; load the NEWLINE VALUE into R0
+OUT ; print the value from R0
+BR START ; jump back to start
+
+NEWLINE .FILL x0D0A ; store the newline character
+.END ; code end
+        

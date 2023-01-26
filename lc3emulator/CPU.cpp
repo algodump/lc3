@@ -251,12 +251,11 @@ void CPU::emulate(uint16_t instruction)
             switch (static_cast<Traps>(trapVector)) {
             case Traps::GETC: {
                 uint16_t charFromKeyboard = getchar();
-                m_memory.write(R0, charFromKeyboard);
-                setConditionalCodes(R0);
+                m_registers[R0] =  charFromKeyboard;
                 break;
             }
             case Traps::T_OUT: {
-                putchar(m_memory[0]);
+                putchar(m_registers[R0]);
                 break;
             }
             case Traps::PUTS: {
@@ -271,8 +270,7 @@ void CPU::emulate(uint16_t instruction)
             case Traps::T_IN: {
                 char charFromKeyboard = getchar();
                 putchar(charFromKeyboard);
-                m_memory.write(R0, charFromKeyboard);
-                setConditionalCodes(R0);
+                m_registers[R0] = charFromKeyboard;
                 break;
             }
             case Traps::PUTSP: {
@@ -284,7 +282,6 @@ void CPU::emulate(uint16_t instruction)
                     char char2 = retrieveBits(twoChars, 15, 8);
                     out += m_memory[stringPointer++];
                 }
-                m_pc += out.size();
                 break;
             }
             case Traps::HALT: {
