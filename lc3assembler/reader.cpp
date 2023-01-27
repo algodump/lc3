@@ -51,7 +51,7 @@ Reader::Reader(const std::string& filename) : m_programName(filename) {}
 
 InstructionToken Reader::parseInsturction(const std::string& insturction)
 {
-    std::istringstream iss(insturction);   
+    std::istringstream iss(insturction);
     auto readInstructionName = [&iss]() {
         std::string instructionName;
         std::getline(iss >> std::ws, instructionName, ' ');
@@ -67,7 +67,7 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
     }
 
     // TODO: make this vector of ints or someting
-    std::vector<std::string> operands;       
+    std::vector<std::string> operands;
     for (std::string operand; std::getline(iss >> std::ws, operand, ',');) {
         if (!operand.empty() && operand[0] != '"') {
             // NOTE: remove all of the trailing spaces if any
@@ -83,9 +83,9 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
         .label = label, .name = instructionName, .operands = operands};
 }
 
-std::vector<std::shared_ptr<Instruction>> Reader::readFile()
+std::vector<InstructionWithAddress> Reader::readFile()
 {
-    std::vector<std::shared_ptr<Instruction>> tokens;
+    std::vector<InstructionWithAddress> tokens;
     try {
         std::ifstream ifs(m_programName);
         if (!ifs.is_open()) {
@@ -98,8 +98,10 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
              std::getline(ifs >> std::ws, currentLine);) {
             // NOTE: skip lines that start with comments
             if (!currentLine.empty() && currentLine[0] != ';') {
-                std::string currentLineWithoutComment = currentLine.substr(0, currentLine.find(';'));
-                auto&& [label, name, operands] = parseInsturction(currentLineWithoutComment);
+                std::string currentLineWithoutComment =
+                    currentLine.substr(0, currentLine.find(';'));
+                auto&& [label, name, operands] =
+                    parseInsturction(currentLineWithoutComment);
                 // add labels to the symbol table
                 if (!label.empty()) {
                     SymbolTable::the().add(label, pc);
@@ -109,27 +111,43 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 if (name[0] == '.') {
                     if (name == ".ORIG") {
                         checkOperands(currentLine, 1, operands.size());
-                        tokens.push_back(std::make_shared<OriginDerective>(
-                            retrieveNumber(operands[0])));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<OriginDerective>(
+                                 retrieveNumber(operands[0])),
+                             .address = pc});
                     }
                     else if (name == ".FILL") {
                         checkOperands(currentLine, 1, operands.size());
-                        tokens.push_back(std::make_shared<FillDerective>(
-                            retrieveNumber(operands[0])));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<FillDerective>(
+                                 retrieveNumber(operands[0])),
+                             .address = pc});
+                        pc += 1;
                     }
                     else if (name == ".BLKW") {
                         checkOperands(currentLine, 1, operands.size());
-                        tokens.push_back(std::make_shared<BlkwDerective>(
-                            retrieveNumber(operands[0])));
+                        auto numberOfMemoryLocations =
+                            retrieveNumber(operands[0]);
+                        tokens.push_back(
+                            {.instruction = std::make_shared<BlkwDerective>(
+                                 numberOfMemoryLocations),
+                             .address = pc});
+                        pc += numberOfMemoryLocations;
                     }
                     else if (name == ".STRINGZ") {
                         checkOperands(currentLine, 1, operands.size());
+                        auto lc3String = operands[0];
                         tokens.push_back(
-                            std::make_shared<StringDerective>(operands[0]));
+                            {.instruction =
+                                 std::make_shared<StringDerective>(lc3String),
+                             .address = pc});
+                        pc += lc3String.size() + 1;
                     }
                     else if (name == ".END") {
                         checkOperands(currentLine, 0, operands.size());
-                        tokens.push_back(std::make_shared<EndDerective>());
+                        tokens.push_back(
+                            {.instruction = std::make_shared<EndDerective>(),
+                             .address = pc});
                     }
                 }
                 else {
@@ -145,14 +163,22 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                             isImmediate ? retrieveNumber(operands[2])
                                         : retrieveRegisterNumber(operands[2]);
                         if (name == "ADD") {
-                            tokens.push_back(std::make_shared<AddInstruction>(
-                                destinationRegister, source1Register,
-                                source2RegisterOrImmediate, isImmediate));
+                            tokens.push_back(
+                                {.instruction =
+                                     std::make_shared<AddInstruction>(
+                                         destinationRegister, source1Register,
+                                         source2RegisterOrImmediate,
+                                         isImmediate),
+                                 .address = pc});
                         }
                         else {
-                            tokens.push_back(std::make_shared<AndInstruction>(
-                                destinationRegister, source1Register,
-                                source2RegisterOrImmediate, isImmediate));
+                            tokens.push_back(
+                                {.instruction =
+                                     std::make_shared<AndInstruction>(
+                                         destinationRegister, source1Register,
+                                         source2RegisterOrImmediate,
+                                         isImmediate),
+                                 .address = pc});
                         }
                     }
                     else if (name.starts_with("BR")) {
@@ -161,48 +187,62 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                         checkOperands(currentLine, 1, operands.size());
                         std::string conditionalCodes = name.substr(2);
                         std::string labelToBranch = operands[0];
-                        tokens.push_back(std::make_shared<BrInstruction>(
-                            conditionalCodes, labelToBranch));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<BrInstruction>(
+                                 conditionalCodes, labelToBranch),
+                             .address = pc});
                     }
                     else if (name == "JMP") {
                         checkOperands(currentLine, 1, operands.size());
                         uint8_t baseRegister =
                             retrieveRegisterNumber(operands[0]);
                         tokens.push_back(
-                            std::make_shared<JmpInsturction>(baseRegister));
+                            {.instruction =
+                                 std::make_shared<JmpInsturction>(baseRegister),
+                             .address = pc});
                     }
                     else if (name == "RET") {
                         checkOperands(currentLine, 0, operands.size());
-                        tokens.push_back(std::make_shared<RetInstruction>());
+                        tokens.push_back(
+                            {.instruction = std::make_shared<RetInstruction>(),
+                             .address = pc});
                     }
                     else if (name == "JSR") {
                         checkOperands(currentLine, 1, operands.size());
                         auto labelOrImmediateOffset = operands[0];
-                        tokens.push_back(std::make_shared<JsrInstruction>(
-                            labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<JsrInstruction>(
+                                 labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "JSRR") {
                         checkOperands(currentLine, 1, operands.size());
                         uint8_t baseRegister =
                             retrieveRegisterNumber(operands[0]);
                         tokens.push_back(
-                            std::make_shared<JsrrInstruction>(baseRegister));
+                            {.instruction = std::make_shared<JsrrInstruction>(
+                                 baseRegister),
+                             .address = pc});
                     }
                     else if (name == "LD") {
                         checkOperands(currentLine, 2, operands.size());
                         uint8_t destinationRegister =
                             retrieveRegisterNumber(operands[0]);
                         std::string labelOrImmediateOffset = operands[1];
-                        tokens.push_back(std::make_shared<LdInstruction>(
-                            destinationRegister, labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<LdInstruction>(
+                                 destinationRegister, labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "LDI") {
                         checkOperands(currentLine, 2, operands.size());
                         uint8_t destinationRegister =
                             retrieveRegisterNumber(operands[0]);
                         std::string labelOrImmediateOffset = operands[1];
-                        tokens.push_back(std::make_shared<LdiInsturction>(
-                            destinationRegister, labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<LdiInsturction>(
+                                 destinationRegister, labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "LDR") {
                         checkOperands(currentLine, 3, operands.size());
@@ -211,33 +251,41 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                         uint8_t baseRegister =
                             retrieveRegisterNumber(operands[1]);
                         std::string labelOrImmediateOffset = operands[2];
-                        tokens.push_back(std::make_shared<LdrInstruction>(
-                            destinationRegister, baseRegister,
-                            labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<LdrInstruction>(
+                                 destinationRegister, baseRegister,
+                                 labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "LEA") {
                         checkOperands(currentLine, 2, operands.size());
                         uint8_t destinationRegister =
                             retrieveRegisterNumber(operands[0]);
                         std::string labelOrImmediateOffset = operands[1];
-                        tokens.push_back(std::make_shared<LeaInstruction>(
-                            destinationRegister, labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<LeaInstruction>(
+                                 destinationRegister, labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "ST") {
                         checkOperands(currentLine, 2, operands.size());
                         uint8_t sourceRegister =
                             retrieveRegisterNumber(operands[0]);
                         std::string labelOrImmediateOffset = operands[1];
-                        tokens.push_back(std::make_shared<StInstruction>(
-                            sourceRegister, labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<StInstruction>(
+                                 sourceRegister, labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "STI") {
                         checkOperands(currentLine, 2, operands.size());
                         uint8_t sourceRegister =
                             retrieveRegisterNumber(operands[0]);
                         std::string labelOrImmediateOffset = operands[1];
-                        tokens.push_back(std::make_shared<StiInstruction>(
-                            sourceRegister, labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<StiInstruction>(
+                                 sourceRegister, labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "NOT") {
                         checkOperands(currentLine, 2, operands.size());
@@ -245,12 +293,16 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                             retrieveRegisterNumber(operands[0]);
                         uint8_t sourceRigistere =
                             retrieveRegisterNumber(operands[1]);
-                        tokens.push_back(std::make_shared<NotInstruction>(
-                            destinationRegister, sourceRigistere));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<NotInstruction>(
+                                 destinationRegister, sourceRigistere),
+                             .address = pc});
                     }
                     else if (name == "RTI") {
                         checkOperands(currentLine, 0, operands.size());
-                        tokens.push_back(std::make_shared<RtiInstruction>());
+                        tokens.push_back(
+                            {.instruction = std::make_shared<RtiInstruction>(),
+                             .address = pc});
                     }
                     else if (name == "STR") {
                         checkOperands(currentLine, 3, operands.size());
@@ -259,20 +311,26 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                         uint8_t baseRegister =
                             retrieveRegisterNumber(operands[1]);
                         std::string labelOrImmediateOffset = operands[2];
-                        tokens.push_back(std::make_shared<StrInstruction>(
-                            sourceRegister, baseRegister,
-                            labelOrImmediateOffset));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<StrInstruction>(
+                                 sourceRegister, baseRegister,
+                                 labelOrImmediateOffset),
+                             .address = pc});
                     }
                     else if (name == "TRAP") {
                         checkOperands(currentLine, 1, operands.size());
                         uint8_t trapVector = retrieveNumber(operands[0]);
                         tokens.push_back(
-                            std::make_shared<TrapInstruction>(trapVector));
+                            {.instruction =
+                                 std::make_shared<TrapInstruction>(trapVector),
+                             .address = pc});
                     }
                     else if (SupportedInsturctions::isTrapInstruction(name)) {
                         checkOperands(currentLine, 0, operands.size());
-                        tokens.push_back(std::make_shared<TrapInstruction>(
-                            SupportedInsturctions::getTrapCode(name)));
+                        tokens.push_back(
+                            {.instruction = std::make_shared<TrapInstruction>(
+                                 SupportedInsturctions::getTrapCode(name)),
+                             .address = pc});
                     }
                     else if (!name.empty() && label.empty()) {
                         throw std::runtime_error(
@@ -284,8 +342,9 @@ std::vector<std::shared_ptr<Instruction>> Reader::readFile()
                 }
             }
         }
-        if (!dynamic_cast<OriginDerective*>((tokens.front()).get()) ||
-            !dynamic_cast<EndDerective*>((tokens.back()).get())) {
+        if (!dynamic_cast<OriginDerective*>(
+                (tokens.front().instruction).get()) ||
+            !dynamic_cast<EndDerective*>((tokens.back().instruction).get())) {
             throw std::runtime_error("Every lc3 assembly program should start "
                                      "with .ORIG and end with .END");
         }

@@ -19,16 +19,14 @@ void Writer::write(const std::string& data)
     m_outpuStream.write(data.c_str(), std::streamsize(data.size()));
 }
 
-Assembler::Assembler(std::vector<std::shared_ptr<Instruction>>& instructions)
+Assembler::Assembler(std::vector<InstructionWithAddress>& instructions)
     : m_instructions(instructions)
 {
 }
 
 void Assembler::gnenerate(Writer& writer)
 {
-    uint16_t pc = 0;
-
-    for (auto& instruction : m_instructions) {
+    for (auto&& [instruction, instructionAddress] : m_instructions) {
         if (auto blkwDerective =
                 dynamic_cast<BlkwDerective*>(instruction.get());
             blkwDerective) {
@@ -50,9 +48,8 @@ void Assembler::gnenerate(Writer& writer)
             continue;
         }
         else {
-            auto binaryInstruction = instruction->generate(pc);
+            auto binaryInstruction = instruction->generate(instructionAddress);
             writer.write(binaryInstruction);
-            pc++;
         }
     }
 }

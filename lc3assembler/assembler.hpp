@@ -16,7 +16,7 @@ class Writer {
 
 class Assembler {
   public:
-    Assembler(std::vector<std::shared_ptr<Instruction>>& instructions);
+    Assembler(std::vector<InstructionWithAddress>& instructions);
     void gnenerate(Writer& writer);
 
     template <uint16_t bitcount = 9>
@@ -37,10 +37,10 @@ class Assembler {
             return toBinaryString<bitcount>(std::stoi(labelOrOffset.substr(1)));
         }
         auto labelLocation = SymbolTable::the().get(labelOrOffset);
-        uint16_t offset = labelLocation - currentPC;
+        uint16_t offset = labelLocation - currentPC - 1;
         return Assembler::toBinaryString<bitcount>(offset);
     }
 
   private:
-    std::vector<std::shared_ptr<Instruction>> m_instructions;
+    std::vector<InstructionWithAddress> m_instructions;
 };

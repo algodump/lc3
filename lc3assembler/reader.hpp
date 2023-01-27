@@ -14,6 +14,11 @@ struct InstructionToken {
     std::vector<std::string> operands;
 };
 
+struct InstructionWithAddress {
+  std::shared_ptr<Instruction> instruction;
+  uint16_t address;
+};
+
 class SymbolTable {
   public:
     static SymbolTable& the()
@@ -45,7 +50,7 @@ class SymbolTable {
 class Reader {
   public:
     Reader(const std::string& filename);
-    std::vector<std::shared_ptr<Instruction>> readFile();
+    std::vector<InstructionWithAddress> readFile();
 
   private:
     InstructionToken
