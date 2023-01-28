@@ -58,7 +58,7 @@ void CPU::setConditionalCodes(Register destinationRegisterNumber)
         m_conditionalCodes = {.N = false, .Z = true, .P = false};
     }
     else {
-        m_conditionalCodes = {.N = true, .Z = false, .P = true};
+        m_conditionalCodes = {.N = false, .Z = false, .P = true};
     }
 }
 
@@ -81,6 +81,7 @@ void CPU::load(const std::string& fileToRun)
             m_memory.write(origin++, data);
         }
     }
+    dumpMemory(m_pc, 5);
 }
 
 void CPU::emulate(uint16_t instruction)
