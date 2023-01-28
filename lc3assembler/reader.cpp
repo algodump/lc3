@@ -45,6 +45,49 @@ uint8_t retrieveRegisterNumber(const std::string& lc3register)
                         lc3register, "R{0, 1, 2, 3, 4, 5, 6, 7}"));
     }
 }
+
+std::string unEscapeString(const std::string& str)
+{
+    std::stringstream ss;
+    for (size_t i = 0; i < str.size();) {
+        if (i + 1 >= str.size()) {
+            ss << str.back();
+            break;
+        }
+        char currentChar = str[i];
+        char nextChar = str[i + 1];
+        if (currentChar == '\\') {
+            bool escaped = true;
+            switch (nextChar) {
+            case 'n':
+                ss << "\n";
+                break;
+            case 't':
+                ss << "\t";
+                break;
+            case 'r':
+                ss << "\r";
+                break;
+            case '\\':
+                ss << "\\";
+                break;
+            case '"':
+                ss << "\"";
+                break;
+            default:
+                escaped = false;
+                break;
+            }
+            if (escaped) {
+                i += 2;
+                continue;
+            }
+        }
+        ss << currentChar;
+        ++i;
+    }
+    return ss.str();
+}
 } // namespace
 
 Reader::Reader(const std::string& filename) : m_programName(filename) {}
@@ -136,7 +179,7 @@ std::vector<InstructionWithAddress> Reader::readFile()
                     }
                     else if (name == ".STRINGZ") {
                         checkOperands(currentLine, 1, operands.size());
-                        auto lc3String = operands[0];
+                        auto lc3String = unEscapeString(operands[0]);
                         tokens.push_back(
                             {.instruction =
                                  std::make_shared<StringDerective>(lc3String),
