@@ -1,0 +1,77 @@
+; SOURCE: http://lc3tutor.org/
+
+.ORIG x3000
+JSR START
+START_MSG .STRINGZ "\n\rConverting the following string to a number:\n\r"
+NEG_ZERO .FILL #-48
+NEG_DASH .FILL #-45
+DASH_FOUND .FILL x0
+NUMBER_STRING .STRINGZ "1234"
+
+START
+  LEA R0, START_MSG
+  PUTS
+  LEA R0, NUMBER_STRING
+  PUTS
+  LEA R2, NUMBER_STRING
+  LDR R0, R2, #0
+  BRz LOOP_END  
+  LD R1, NEG_DASH
+  ADD R1, R1, R0
+  BRnp POSITIVE_NUMBER
+
+NEGATIVE_NUMBER 
+  AND R3, R3, #0
+  ADD R3, R3, #1
+  ST R3, DASH_FOUND
+  ADD R2, R2, #1
+  LDR R0, R2, #0
+
+POSITIVE_NUMBER
+  LD R1, NEG_ZERO
+  AND R3, R3, #0
+  
+LOOP_START
+  ADD R0, R0, R1
+  BRn BAD_CHARACTER
+  ADD R0, R0, #-9
+  BRp BAD_CHARACTER
+  ADD R0, R0, #9
+  ADD R3, R3, R0
+  ADD R2, R2, #1
+  LDR R0, R2, #0
+  BRz LOOP_END
+  ADD R3, R3, R3
+  ADD R4, R3, R3
+  ADD R4, R4, R4
+  ADD R3, R4, R3
+  BR LOOP_START
+  
+LOOP_END
+  LD R1, DASH_FOUND
+  ADD R1, R1, #0
+  BRz ALL_DONE
+ 
+DO_NEGATE
+  NOT R3, R3
+  ADD R3, R3, #1 
+ 
+ALL_DONE
+  LEA R0, DONE_MSG
+  PUTS
+  HALT
+  
+  
+BAD_CHARACTER
+  LEA R0, ABORT_MSG
+  PUTS
+  LDR R0, R2, #0
+  OUT
+  HALT
+HALT
+
+DONE_MSG .STRINGZ "\n\rAll done = please check the value of the R3 register."
+ABORT_MSG .STRINGZ "\n\rI am sorry - that input number has an invalid character.  \n\rOnly 0-9 or the '-' character are allowed.  \n\rThe invalid character was: "
+
+.END
+        

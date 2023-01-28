@@ -1,76 +1,84 @@
+
 .ORIG x3000
-LEA R0, MY_STRING; get the address of the first charcter in the string
-ADD R1, R0, #0; set R1 to be equal to R0 (start of string)
-
-; Now we will increment R1 gradually until we find the null character that terminates the string...
-; (.STRINGZ will always use a null character to indicate the end of a string)
-; Note that since the NULL character has a value of "zero" we can simply use a BRz check to
-; branch if/when the null character is loaded
-
-; FIND THE ADDRESS OF THE LAST CHARACTER  
-
-LOOP_START; 
-    LDR R2, R1, #1; sets the CCR based on the value we store in R2 from the address (R1 + 1) 
-    BRz LOOP_END; if the character we grabbed in R2 was null (zero), then R1 is at the the last character of the string
-    ; above: note that the #1 offset we used on the LDR statement reached 'one memory position farther than R1' in the string to check for the null character
-    ;    so R1 is actually the address of the last character, NOT the address of the null character.
-    ;    Be sure you understand this difference!
-    
-    ; else if we did not jump, then the R1 address is not at the last character yet
-    
-    ADD R1, R1, #1; add one to the R1 'pointer' to move to the next character in the string
-    BR LOOP_START;  and loop around again (unconditional branch)
+;----------------------------------------
+; EXAMPLE: LETTER OR DIGIT?
+;----------------------------------------
+START
+  LEA R0, INPUT_PROMPT;
+  PUTS;
+  GETC; GET A CHARACTER INTO R0
+  OUT; ECHO IT BACK OUT
   
+  ; R0 NOW HAS THE USER-ENTERED CHARACTER WE NEED TO TEST...
   
-LOOP_END; jump here from above if we detected a null character at address (R1+1).
-
-
-  ; at this point R1 should be pointing to our last character...
-  ;   and R0 is still the first character's address
-  ;   we are ready to begin our character swapping
-
-; START SWAPPING
-
-SWAP_START
-  LDR R2, R0, #0; copy the character from the 'front' of the string to the the temp R2 register
-  LDR R3, R1, #0; copy the character from the 'rear' of the string to the temp R3 register
-  STR R2, R1, #0; store the character from register R2 at the R1 location (zero offset)
-  STR R3, R0, #0; store the character from register R3 at the R0 location (zero offset)
+IS_R0_UPPER; IS THE CHARACTER IN R0 AN UPPER CASE LETTER?
+  LD R1, NEGATIVE_UPR_A_CHR; LOAD "A"
+  ; IS R0 < A?
+  ADD R1, R1, R0;
+  BRN IS_R0_DIGIT; IF THE ADD PRODUCED A NEGATIVE NUMBER, THEN R0 IS A CHARACTER 'BELOW' A, SO IT *COULD* BE A DIGIT; LET'S GO FIND OUT...
+  ; ELSE IT COULD STILL BE IN A-Z... LET'S SEE IF IT IS <= "Z"
+  ; IS R0 > Z?
+  LD R1, NEGATIVE_UPR_Z_CHR; LOAD "Z"
+  ADD R1, R1, R0;
+  BRP IS_R0_LOWER; IF THE ADD PRODUCED A POSITIVE NUMBER, THEN R0 IS A CHARACTER 'ABOVE' Z, SO IT *COULD* BE A LOWER CASE LETTER, BUT IT CANNOT BE A-Z AND IT CANNOT BE 0-9; LET'S GO FIND OUT IF IT IS A-Z
+  ; ELSE WE KNOW IT IS BETWEEN A-Z INCLUSIVE, SO IT MUST BE AN UPPER CASE LETTER
+  LEA R0, CONFIRM_UPPER_LETTER;
+  PUTS
+  BR START; REPEAT
   
-  ADD R0, R0, #1; increment the 'front' pointer by 1 memory location for the next loop
-  ADD R1, R1, #-1; DECREMENT the 'end' pointer by 1 memory location for the next loop
-  
-  
-  ; if R0 is greater than, or equal to R1, then our tracking pointers have 'passed' eachother or are on the same memory location
-  ; in either case, we are done swapping... so jump out of the loop.
-  ; BTW - We could subtract R1-R0, but we'd need to change our branch conditional.... Do you know what it would be?
-  ; To evaluate the above conditional we will need to subtract the R1 address from the R0 address: R4 = R0 - R1
-  ; Given R4 = R0 - R1, if the result is zero or positive, then R0 is at or beyond R1
-  ; First, we will need to negate R1... we'll use R2 to do that, as R2 will be reset at the top of the loop anyway
-  
-  NOT R2, R1; complement R1 and store in R2
-  ADD R2, R2, #1; add one to complete our 'negate' recipe
-  
-  ; now we have -R1 store in R2
-  
-  ADD R4, R0, R2; finish R4 = R0 - R1
-  
-  BRzp SWAP_END;  branch if zero or positive
-  
-  BR SWAP_START; else repeat
 
+IS_R0_LOWER; IS THE CHARACTER IN R0 A LOWER CASE LETTER? (IF WE GOT THIS FAR WE KNOW IT IS NOT A-Z)
+  LD R1, NEGATIVE_LWR_A_CHR; LOAD "A"
+  ; IS R0 < A?
+  ADD R1, R1, R0;
+  BRN IS_R0_DIGIT; IF THE ADD PRODUCED A NEGATIVE NUMBER, THEN R0 IS A CHARACTER 'BELOW' A , BUT ABOVE A, SO IT *CANNOT* BE A-Z OR A DIGIT, BECAUSE WE WOULD NOT HAVE GOTTEN THIS FAR; MUST NOT BE A VALID CHARACTER
+  ; ELSE IT COULD STILL BE IN A-Z... LET'S SEE IF IT IS <= "Z"
+  ; IS R0 <= Z?
+  LD R1, NEGATIVE_LWR_Z_CHR; LOAD "Z"
+  ADD R1, R1, R0;
+  BRP IS_R0_OTHER; IF THE ADD PRODUCED A POSITIVE NUMBER, THEN R0 IS A CHARACTER 'ABOVE' Z, SO IT CANNOT BE A-Z EITHER... MUST BE OTHER
+  ; ELSE WE KNOW IT IS BETWEEN A-Z INCLUSIVE, SO IT MUST BE AN LOWER CASE LETTER
+  LEA R0, CONFIRM_LOWER_LETTER;
+  PUTS
+  BR START; REPEAT
 
-SWAP_END
+IS_R0_DIGIT; IF WE GOT THIS FAR, IT *MAY BE* A DIGIT, BUT WE NEED TO VERIFY
+  LD R1, NEGATIVE_0_CHR; LOAD "0"
+  ; IS R0 < 0?
+  ADD R1, R1, R0;
+  BRN IS_R0_OTHER; IF THE ADD PRODUCED A NEGATIVE NUMBER, THEN R0 IS A CHARACTER 'BELOW' 0 , SO IT MUST BE "OTHER"
+  ; ELSE IT COULD STILL BE IN 0-9... LET'S SEE IF IT IS <= "9"
+  ; IS R0 <= 9?
+  LD R1, NEGATIVE_9_CHR; LOAD "9"
+  ADD R1, R1, R0;
+  BRP IS_R0_OTHER; IF THE ADD PRODUCED A POSITIVE NUMBER, THEN R0 IS A CHARACTER 'ABOVE' 9, SO IT CANNOT BE 0-9 EITHER... MUST BE OTHER
+  ; ELSE WE KNOW IT IS BETWEEN 0-9 INCLUSIVE, SO IT MUST BE A NUMBER
+  LEA R0, CONFIRM_DIGIT;
+  PUTS
+  BR START; REPEAT
 
-LEA R0, MY_STRING; get the starting address again
-PUTS; print the final string
+IS_R0_OTHER; IF WE GOT THIS FAR, IT DEFINITELY IS NOT A LETTER OR DIGIT
+  LEA R0, CONFIRM_OTHER;
+  PUTS
+  BR START; REPEAT
 
+  
+HALT; NEVER GETS HERE... BUT JUST IN CASE!
 
-HALT
+INPUT_PROMPT .STRINGZ "\NPLEASE ENTER ANY CHARACTER:\N"
+CONFIRM_UPPER_LETTER .STRINGZ "\NTHAT IS AN UPPER CASE LETTER!\N";
+CONFIRM_LOWER_LETTER .STRINGZ "\NTHAT IS A LOWER CASE LETTER!\N";
+CONFIRM_DIGIT .STRINGZ "\NTHAT IS A NUMERIC DIGIT!\N";
+CONFIRM_OTHER .STRINGZ "\NTHAT IS NOT A LETTER OR A DIGIT\N";
 
-MY_STRING .STRINGZ "abcdef"
-NULL_CHAR .FILL #0; the terminating character found at the end of every .STRINGZ string
+NEGATIVE_UPR_A_CHR .FILL #-65;  CHAR "A" ASCII CODE, NEGATED
+NEGATIVE_UPR_Z_CHR .FILL #-90;  CHAR "Z" ASCII CODE, NEGATED
 
+NEGATIVE_LWR_A_CHR .FILL #-97;  CHAR "A" ASCII CODE, NEGATED
+NEGATIVE_LWR_Z_CHR .FILL #-122;  CHAR "Z" ASCII CODE, NEGATED
+
+NEGATIVE_0_CHR .FILL #-48; CHAR "0" ASCII CODE, NEGATED
+NEGATIVE_9_CHR .FILL #-57; CHAR "9" ASCII CODE, NEGATED
 
 
 .END

@@ -1,3 +1,5 @@
+; SOURCE: http://lc3tutor.org/
+
 .ORIG x3000
 ;----------------------------------------------------------
 ; Example: Reverse the characters of an in-memory string

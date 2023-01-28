@@ -1,4 +1,5 @@
-; source: http://lc3tutor.org/
+; SOURCE: http://lc3tutor.org/
+
 .ORIG x3000 ; code start (note that all comments start after a ';'))
 ;----------------------------------------
 ; Example: Hello World

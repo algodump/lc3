@@ -1,0 +1,20 @@
+.ORIG x3000
+;----------------------------------------
+; Example: Simple Subroutine
+;----------------------------------------
+LOOP_START
+JSR MY_FUNC; jump to the MY_FUNC label
+BR LOOP_START; repeat
+
+
+MY_FUNC
+ADD R5, R7, #0; copy the 'return' location of R7 into R5, since it will get stomped by IN below
+IN; get a character
+LD R0, NEWLINE; get the newline character into R0
+OUT; print newline
+ADD R7, R5, #0; restore the original R7 value
+RET; return from the call, or we could have done a JMP R5!
+
+NEWLINE .FILL x000D; this is the newline character
+.END
+        

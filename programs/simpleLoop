@@ -1,0 +1,27 @@
+; SOURCE: http://lc3tutor.org/
+
+.ORIG x3000
+;----------------------------------------
+; Example: Simple Loop
+;----------------------------------------
+LD R1, LOOPMAX; load value at LOOPMAX into R1
+LD R2, NEG_ONE; load value at NEG_ONE into R2
+LEA R0, LOOP_MSG; load ADDRESS of LOOP_MSG into R0
+
+LOOP_START
+PUTS; print the looping message
+ADD R1, R2, R1; decrement the R1 loop counter
+;NOTE: ADD R1, #-1 would also work above!
+BRp LOOP_START; if R1 is still positive, loop again
+LOOP_END; else we are done.. this tag really does nothing
+
+LEA R0, DONE_MSG; load the address of our done message
+PUTS; print the done message
+
+HALT
+
+LOOPMAX .FILL x000A ; hex for 10
+NEG_ONE .FILL #-1 ; decimal for -1
+LOOP_MSG .STRINGZ "Loopin\g...\n"
+DONE_MSG .STRINGZ "All Done!\n"
+.END

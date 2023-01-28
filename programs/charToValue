@@ -1,0 +1,23 @@
+; SOURCE: http://lc3tutor.org/
+
+.ORIG x3000
+;----------------------------------------
+; Example: Character to Value
+;----------------------------------------
+LOOP_START
+LD R0, NEWLINE; load the VALUE at NEWLINE
+OUT; print the value in R0 (newline)
+
+IN; get ONE character into R0
+LD R1, ASCII_BASE; load the VALUE at ASCII_BASE
+ADD R0, R0, R1; add the negative base (subtract)
+; now R0 (above) has a VALUE
+
+BRnp LOOP_START; jump back to the start if NOT zero (if negative or positive)
+
+HALT
+
+NEWLINE .FILL x0A0D ; store the newline character
+ASCII_BASE .FILL #-48; store the negative ascii code for "0"
+.END
+        

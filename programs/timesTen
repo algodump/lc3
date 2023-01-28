@@ -1,0 +1,24 @@
+; SOURCE: http://lc3tutor.org/
+
+.ORIG x3000
+;----------------------------------------
+; Example: Times 10 (looping)
+;----------------------------------------
+LD R0, VALUE ; load the value we want to multiple
+LD R3, ZERO; stort with zero in R3
+LD R2, TEN; load the loop max
+
+LOOP_START
+ADD R3, R3, R0; add R0 for each loop
+ADD R2, R2, #-1; decrement R2 each loop
+BRnp LOOP_START; loop back if last operation was not zero (R2)
+; else we are done
+
+HALT; R3 should have our result (R0, R1 will be changed by the trap)
+
+VALUE .FILL #3; the value 0
+TEN .FILL #10; the value 10
+ZERO .FILL #0; the value zero
+
+.END
+        

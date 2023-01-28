@@ -1,0 +1,14 @@
+; SOURCE: http://lc3tutor.org/
+
+.ORIG x3000
+;----------------------------------------
+; Example: Shift Left
+;----------------------------------------
+LD R0, ONE; load R0 with the value at label ONE
+ADD R0, R0, R0; double the value
+
+HALT
+
+ONE .FILL #1; the value of ONE
+
+.END
