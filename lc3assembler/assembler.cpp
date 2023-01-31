@@ -32,8 +32,7 @@ void Assembler::gnenerate(Writer& writer)
             blkwDerective) {
             for (int i = 0; i < blkwDerective->getNumberOfMemoryLocations();
                  ++i) {
-                std::bitset<16> no("0100111101001110");
-                writer.write(no.to_ulong());
+                writer.write(0);
             }
         }
         else if (auto stringzDerective =
