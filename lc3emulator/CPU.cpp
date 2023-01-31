@@ -244,15 +244,15 @@ void CPU::emulate(uint16_t instruction)
             break;
         }
         case InstructionOpCode::TRAP: {
-            uint8_t trapVector = retrieveBits(instruction, 7, 8);
+            auto trapVector = static_cast<Traps>(retrieveBits(instruction, 7, 8));
             // NOTE: real implementaion should jump to trap vector table
             //       that resides in our emulator memory, and that table
             //       should point to another piece of memory that contains
             //       trap routines implementaion.
-            switch (static_cast<Traps>(trapVector)) {
+            switch (trapVector) {
             case Traps::GETC: {
-                uint16_t charFromKeyboard = getchar();
-                m_registers[R0] =  charFromKeyboard;
+                char charFromKeyboard = getchar();
+                m_registers[R0] = charFromKeyboard;
                 break;
             }
             case Traps::T_OUT: {
@@ -291,7 +291,7 @@ void CPU::emulate(uint16_t instruction)
             }
             default:
                 throw std::runtime_error(
-                    std::format("Trap: {} is not supported", trapVector));
+                    std::format("Trap: {} is not supported", static_cast<int>(trapVector)));
             }
             break;
         }

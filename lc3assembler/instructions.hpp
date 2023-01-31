@@ -42,7 +42,7 @@ class SupportedInsturctions {
     static std::map<std::string, uint8_t> trapInstructions()
     {
         static std::map<std::string, uint8_t> supporteTrapInstructions{
-            {"GETS", 0x20}, {"OUT", 0x21},   {"PUTS", 0x22},
+            {"GETC", 0x20}, {"OUT", 0x21},   {"PUTS", 0x22},
             {"IN", 0x23},   {"PUTSP", 0x24}, {"HALT", 0x25}};
         return supporteTrapInstructions;
     }
