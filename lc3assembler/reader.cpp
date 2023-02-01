@@ -97,6 +97,7 @@ InstructionToken Reader::parseInsturction(const std::string& insturction)
     std::istringstream iss(insturction);
     auto readInstructionName = [&iss]() {
         std::string instructionName;
+        // TODO: add tab support
         std::getline(iss >> std::ws, instructionName, ' ');
         return instructionName;
     };
