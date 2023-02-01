@@ -1,0 +1,177 @@
+; SOURCE: http://lc3tutor.org/
+.ORIG x3000
+;------------------------------------------
+; Example: Storing and Restoring Registers
+;
+; In this sample we present a strategy for storing and recovering registers in every subroutine.
+; This approach allows subroutines to call other subroutines, since every subroutine backs up registers in its own private area
+; This approach also minimizes potential naming errors, since the code for each subroutine is almost identical.
+; Unlike other approaches, you do not need to keep a unique label storing every register in every subroutine.
+; Because we use the name of the subroutine itself to 'find' our register storage area in each subroutine, we avoid using a large number of labels.
+; It is critical however that the .blkw statement we use to allocate space for our register storage be placed exactly before the subroutine name.
+; You can create other 'local' subroutine variables above the 'register block', just be sure the register block (.blkw) is immediately before
+; the subroutine label. Note also that in many cases, you may want to "return' a register value with changes (like returning a value from a function).
+; That is, the job of your subroutine may be to actually return a value in R0, R1, etc.  In these cases, be sure to comment out the
+; "restore" register code for the registers you have changed and with to 'return' to the calling function.
+;
+; Note that the storing and loading code for each subroutine are virtually identical, other than the name of the subroutine itself.  No messy labels!
+;--------------------------------------------
+AND R0, R0, #0; zero out all registers
+AND R1, R0, #0;
+AND R2, R0, #0;
+AND R3, R0, #0;
+AND R4, R0, #0;
+AND R5, R0, #0;
+AND R6, R0, #0;
+AND R7, R0, #0;
+
+ADD R0, R0, #0; initialize all registers with a value (this coulbe anything*)
+ADD R1, R0, #1; 
+ADD R2, R0, #2; 
+ADD R3, R0, #3; 
+ADD R4, R0, #4; 
+ADD R5, R0, #5; 
+ADD R6, R0, #6; 
+ADD R7, R0, #7;
+
+JSR SUBR_A; Jump to SUBR A (which will jump to B, and B will jump to C, before returning in "chain" fashion)
+
+LEA R0, PRINT_DONE; load this address of PRINT_DONE;
+PUTS; print DONE!
+
+GETC; this will simply pause program execution so you can inspect register R0-R7
+; you should see that registers have the same values 0,1,2,3-7 at this point, as when they started.
+
+HALT
+
+PRINT_DONE .STRINGZ "\nDONE!\n";
+
+;------------------------
+; SUBR A
+;------------------------
+PRINT_SUBR_A .STRINGZ "Here in SUBR_A!\n"
+.BLKW #8; register back up zone: room for 8 registers
+SUBR_A
+  ; store all registers, note we have to 'reach back' twice as far on each line to reach the next available memory location
+  ST R0, #-2; store  R0 at mem-2 from 'here' (in the .blkw section)
+  ST R1, #-4; store R1 at mem-4 from 'here'
+  ST R2, #-6; etc.
+  ST R3, #-8;
+  ST R4, #-10;
+  ST R5, #-12;
+  ST R6, #-14;
+  ST R7, #-16;
+  
+  ; do work here!
+  ADD R0, R0, R0; double register values.. just to make a change
+  ADD R1, R1, R1;
+  ADD R2, R2, R2;
+  ADD R3, R3, R3;
+  ADD R4, R4, R4;
+  ADD R5, R5, R5;
+  ADD R6, R6, R6;
+  ADD R7, R7, R7;
+  
+  LEA R0, PRINT_SUBR_A; prove we made it ok
+  PUTS;
+  
+  JSR SUBR_B; CALL B FROM HERE
+  
+  ; restore all registers
+  LEA R7, SUBR_A; load the address of this subroutine
+  LDR R0, R7, #-1; recover all registers, in this order!
+  LDR R1, R7, #-2;
+  LDR R2, R7, #-3;
+  LDR R3, R7, #-4;
+  LDR R4, R7, #-5;
+  LDR R5, R7, #-6;
+  LDR R6, R7, #-7;
+  LDR R7, R7, #-8; R7 has to be last, since we overwrite the R7 address offset
+  RET
+  
+;------------------------
+; SUBR B
+;------------------------
+PRINT_SUBR_B .STRINGZ "Here in SUBR_B!\n"
+.BLKW #8
+SUBR_B
+  ST R0, #-2; store  R0 at mem-2 from 'here' (in the .blkw section)
+  ST R1, #-4; store R0 at mem-4 from 'here'
+  ST R2, #-6; etc.
+  ST R3, #-8;
+  ST R4, #-10;
+  ST R5, #-12;
+  ST R6, #-14;
+  ST R7, #-16;
+  
+  ; do work here!
+  ADD R0, R0, R0; double register values.. just to make a change
+  ADD R1, R1, R1;
+  ADD R2, R2, R2;
+  ADD R3, R3, R3;
+  ADD R4, R4, R4;
+  ADD R5, R5, R5;
+  ADD R6, R6, R6;
+  ADD R7, R7, R7;
+
+  LEA R0, PRINT_SUBR_B; prove we made it ok
+  PUTS;
+  
+  JSR SUBR_C; Call C from here...
+  
+  ; restore all registers
+  LEA R7, SUBR_B; load the address of this subroutine
+  LDR R0, R7, #-1; recover all registers, in this order!
+  LDR R1, R7, #-2;
+  LDR R2, R7, #-3;
+  LDR R3, R7, #-4;
+  LDR R4, R7, #-5;
+  LDR R5, R7, #-6;
+  LDR R6, R7, #-7;
+  LDR R7, R7, #-8; 
+  RET
+
+
+;------------------------
+; SUBR C
+;------------------------
+PRINT_SUBR_C .STRINGZ "Here in SUBR_C!\n"
+.BLKW #8
+SUBR_C
+  ST R0, #-2; store  R0 at mem-2 from 'here' (in the .blkw section)
+  ST R1, #-4; store R0 at mem-4 from 'here'
+  ST R2, #-6; etc.
+  ST R3, #-8;
+  ST R4, #-10;
+  ST R5, #-12;
+  ST R6, #-14;
+  ST R7, #-16;
+
+  ;do work here!
+  ADD R0, R0, R0; double register values.. just to make a change
+  ADD R1, R1, R1;
+  ADD R2, R2, R2;
+  ADD R3, R3, R3;
+  ADD R4, R4, R4;
+  ADD R5, R5, R5;
+  ADD R6, R6, R6;
+  ADD R7, R7, R7;
+  
+  LEA R0, PRINT_SUBR_C; prove we made it ok
+  PUTS;
+  
+  ; restore all registers
+  LEA R7, SUBR_C; load the address of this subroutine
+  LDR R0, R7, #-1; recover all registers, in this order!
+  LDR R1, R7, #-2;
+  LDR R2, R7, #-3;
+  LDR R3, R7, #-4;
+  LDR R4, R7, #-5;
+  LDR R5, R7, #-6;
+  LDR R6, R7, #-7;
+  LDR R7, R7, #-8;
+  RET
+  
+
+.END
+        

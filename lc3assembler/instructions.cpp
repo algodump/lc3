@@ -135,9 +135,9 @@ uint16_t BrInstruction::generate(uint16_t currentPC)
     if (m_conditionalCodes.empty() || m_conditionalCodes.size() == 3) {
         // clang-format off
            m_assembelyInstruction.set(opcode())
-            .set('1')
-            .set('1')
-            .set('1')
+            .set('0')
+            .set('0')
+            .set('0')
             .set(labelOffset);
     }
     else {
