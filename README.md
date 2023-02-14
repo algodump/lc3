@@ -11,8 +11,9 @@ git clone --recurse-submodules https://github.com/Man-in-the-middl-e/lc3.git
 - [x] Implement lc3 assembler.
 - [x] Add build instructions.
 - [x] Implement lc3 emulator.
-- [ ] Fix bugs
-- [ ] Add build instructions for Linux
+- [x] Fix bugs.
+- [x] Add build instructions for Linux.
+- [ ] Add debug and release builds
 
 ## LC3 build instructions
 
@@ -34,7 +35,24 @@ cmake --build . --config Debug -j 18 --
 
 ### Linux
 ```
-TODO
+mkdir build
+cd build
+cmake ..
+make -j $(nproc)
+```
+
+### Run From Command Line 
+
+#### Run LC3 assembler
+```
+cd build/lc3assembler
+./lc3asm ../../programs/helloWorld -o ../../hello
+```
+
+#### Run LC3 emulaotr
+```
+cd build/lc3emulator
+./lc3emulator ../../hello 
 ```
 
 ## References:
