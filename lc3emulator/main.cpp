@@ -7,6 +7,7 @@ int main(int argc, char* argv[])
 {
     signal(SIGINT, handle_interrupt);
     disable_input_buffering();
+
     if (argc < 2) {
         std::cout << "usage: lc3emulator filename" << std::endl;
         return -1;

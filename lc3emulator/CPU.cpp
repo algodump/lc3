@@ -2,7 +2,7 @@
 
 #include <assert.h>
 #include <bitset>
-#include <format>
+#include <fmt/core.h>
 #include <fstream>
 #include <iostream>
 
@@ -67,7 +67,7 @@ void CPU::load(const std::string& fileToRun)
     std::ifstream ifs(fileToRun, std::ios::binary);
     if (!ifs.is_open()) {
         throw std::runtime_error(
-            std::format("Couldn't open a file: `{}`", fileToRun));
+            fmt::format("Couldn't open a file: `{}`", fileToRun));
     }
 
     uint16_t origin;
@@ -291,7 +291,7 @@ void CPU::emulate(uint16_t instruction)
             }
             default:
                 throw std::runtime_error(
-                    std::format("Trap: {} is not supported", static_cast<int>(trapVector)));
+                    fmt::format("Trap: {} is not supported", static_cast<int>(trapVector)));
             }
             break;
         }
@@ -302,7 +302,7 @@ void CPU::emulate(uint16_t instruction)
         }
         default: {
             throw std::runtime_error(
-                std::format("Illegal instruction op code: {}"));
+                fmt::format("Illegal instruction op code: {}"));
         }
         }
     }
@@ -325,6 +325,7 @@ void CPU::emulate()
             break;
         }
     }
+
     restore_input_buffering();
 }
 

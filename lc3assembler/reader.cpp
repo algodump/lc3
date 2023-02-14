@@ -1,7 +1,7 @@
 #include "reader.hpp"
 #include "assembler.hpp"
 
-#include <format>
+#include <fmt/core.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -12,7 +12,7 @@ void checkOperands(const std::string& currentLine,
                    uint8_t actualNumberOfOperands)
 {
     if (expectedNumberOfOperands != actualNumberOfOperands) {
-        throw std::runtime_error(std::format(
+        throw std::runtime_error(fmt::format(
             "Wrong number of operands for `{}` expected {} operands, got {}",
             currentLine, expectedNumberOfOperands, actualNumberOfOperands));
     }
@@ -28,7 +28,7 @@ uint16_t retrieveNumber(const std::string& number)
         return std::stoi(number.substr(1));
     }
     else {
-        throw std::runtime_error(std::format(
+        throw std::runtime_error(fmt::format(
             "Wrong number format: number should start form `#` or `x`"));
     }
 }
@@ -41,7 +41,7 @@ uint8_t retrieveRegisterNumber(const std::string& lc3register)
     }
     else {
         throw std::runtime_error(
-            std::format("Wrong register format: got: {}, expected: {}",
+            fmt::format("Wrong register format: got: {}, expected: {}",
                         lc3register, "R{0, 1, 2, 3, 4, 5, 6, 7}"));
     }
 }
@@ -134,7 +134,7 @@ std::vector<InstructionWithAddress> Reader::readFile()
         std::ifstream ifs(m_programName);
         if (!ifs.is_open()) {
             std::runtime_error(
-                std::format("Couldn't open file: `{}`", m_programName));
+                fmt::format("Couldn't open file: `{}`", m_programName));
         }
 
         uint16_t pc = 0;
@@ -378,7 +378,7 @@ std::vector<InstructionWithAddress> Reader::readFile()
                     }
                     else if (!name.empty() && label.empty()) {
                         throw std::runtime_error(
-                            std::format("Unknown instruction: {}", name));
+                            fmt::format("Unknown instruction: {}", name));
                     }
                     if (!name.empty()) {
                         pc++;

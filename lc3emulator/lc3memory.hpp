@@ -1,23 +1,29 @@
 #pragma once
 
-#include <Windows.h>
 #include <array>
 #include <assert.h>
-#include <conio.h>
+
 #include <cstdint>
-#include <format>
+#include <fmt/core.h>
 #include <signal.h>
 
+#ifdef WIN32
+#include <conio.h>
+#include <Windows.h>
 #undef max
+#endif
 
 namespace {
 // SOURCE:
 // https://github.com/justinmeiners/lc3-vm/blob/master/docs/src/lc3-win.c
+#ifdef WIN32
 HANDLE hStdin = INVALID_HANDLE_VALUE;
 DWORD fdwMode, fdwOldMode;
+#endif
 
 void disable_input_buffering()
 {
+    #ifdef WIN32
     hStdin = GetStdHandle(STD_INPUT_HANDLE);
     GetConsoleMode(hStdin, &fdwOldMode);     /* save old mode */
     fdwMode = fdwOldMode ^ ENABLE_ECHO_INPUT /* no input echo */
@@ -25,26 +31,38 @@ void disable_input_buffering()
                                                 more characters are available */
     SetConsoleMode(hStdin, fdwMode);         /* set new mode */
     FlushConsoleInputBuffer(hStdin);         /* clear buffer */
+    #endif
 }
 
-void restore_input_buffering() { SetConsoleMode(hStdin, fdwOldMode); }
+void restore_input_buffering() 
+{ 
+    #ifdef WIN32
+    SetConsoleMode(hStdin, fdwOldMode);
+    #endif 
+}
 
 uint16_t check_key()
 {
+    #ifdef WIN32
     return WaitForSingleObject(hStdin, 1000) == WAIT_OBJECT_0 && _kbhit();
+    #else 
+    return 0;
+    #endif
 }
 
 void handle_interrupt(int signal)
 {
+    #ifdef WIN32
     restore_input_buffering();
     printf("\n");
     exit(-2);
+    #endif
 }
 } // namespace
 
 class Memory {
   private:
-    static constexpr uint16_t START_OF_USER_DEFINED_PROGRAMS = 0x3000;
+    static constexpr uint16_t START_OF_USER_PROGRAMS = 0x3000;
     static constexpr uint16_t LC3_MEMORY_CAPCITY =
         std::numeric_limits<uint16_t>::max();
     static constexpr uint16_t KEYBOARD_STATUS_REGISTER = 0xFE00;
@@ -65,18 +83,18 @@ class Memory {
                 m_memory[KEYBOARD_STATUS_REGISTER] = 0;
             }
         }
-        else if (address < START_OF_USER_DEFINED_PROGRAMS) {
+        else if (address < START_OF_USER_PROGRAMS) {
             throw std::runtime_error(
-                std::format("Illegal memory access at address: {}", address));
+                fmt::format("Illegal memory access at address: {}", address));
         }
         return m_memory[address];
     }
 
     void write(uint16_t address, uint16_t value)
     {
-        if (address < START_OF_USER_DEFINED_PROGRAMS) {
+        if (address < START_OF_USER_PROGRAMS) {
             throw std::runtime_error(
-                std::format("Illegal memory write at address: {}", address));
+                fmt::format("Illegal memory write at address: {}", address));
         }
         m_memory[address] = value;
     }

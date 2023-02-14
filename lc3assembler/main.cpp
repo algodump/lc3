@@ -1,5 +1,6 @@
 #include <exception>
 #include <filesystem>
+#include <fmt/core.h>
 #include <iostream>
 
 #include "assembler.hpp"
@@ -24,11 +25,11 @@ int main(int argc, char* argv[])
         Writer writer(outFileName);
 
         assembler.gnenerate(writer);
-        std::cout << std::format("Writing assembler output to: `{}`\n",
+        std::cout << fmt::format("Writing assembler output to: `{}`\n",
                                  outFileName);
     }
     catch (std::exception e) {
-        std::cout << std::format("LC3 ASSEMBLER ERROR: {}\n", e.what());
+        std::cout << fmt::format("LC3 ASSEMBLER ERROR: {}\n", e.what());
     }
 
     return 0;
