@@ -10,9 +10,16 @@
 
 int main(int argc, char* argv[])
 {
+    std::string outFileName = "out.lc3";
     if (argc < 2) {
-        std::cout << "usage: lc3assembler <filename> " << std::endl;
+        std::cout << "usage: lc3assembler <filename> [-o output file nanme] " << std::endl;
         return 1;
+    } else if (argc == 4) {
+        std::string outputFlag = argv[2];
+        std::string outputFilenameParameter = argv[3];
+        if (outputFlag == "-o" && !outputFilenameParameter.empty()) {
+            outFileName = outputFilenameParameter;
+        }
     }
 
     try {
@@ -21,7 +28,6 @@ int main(int argc, char* argv[])
         auto instructions = reader.readFile();
 
         Assembler assembler(instructions);
-        std::string outFileName = "out.lc3";
         Writer writer(outFileName);
 
         assembler.gnenerate(writer);
