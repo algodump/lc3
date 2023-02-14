@@ -1,9 +1,16 @@
 cmake_minimum_required(VERSION 3.12)
 project(lc3 VERSION 0.1.0)
 
-set(gtest_force_shared_crt on)
-set(CMAKE_CXX_FLAGS "/std:c++latest /EHsc")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS "/std:c++latest /EHsc")
+    set(gtest_force_shared_crt on)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "-std=c++2a")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS "--std=c++2a")
+endif()
 
 add_subdirectory(lc3assembler)
 add_subdirectory(lc3emulator)
 add_subdirectory(googletest)
+add_subdirectory(fmt)
